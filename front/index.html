@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sello Dorado PWA</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- CSS (Salida compilada de Tailwind / SCSS) -->
+    <link rel="stylesheet" href="/src/css/styles.css">
+</head>
+<body class="bg-gray-100 text-gray-900">
+    
+    <!-- Contenedor Principal -->
+    <main id="app-root">
+        <!-- Esqueleto de la interfaz -->
+    </main>
+
+    <!-- Importaciones de Scripts -->
+    <script type="module" src="/src/js/main.js"></script>
+    <script type="module" src="/src/js/modals.js"></script>
+    
+    <!-- Registro del Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
+</body>
+</html>
