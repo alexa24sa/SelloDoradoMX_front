@@ -10,13 +10,21 @@
     <meta name="theme-color" content="#ffffff">
     
     <!-- CSS (Salida compilada de Tailwind / SCSS) -->
-    <link rel="stylesheet" href="/src/css/styles.css">
+    <link rel="stylesheet" href="./src/scss/styles.scss">
+    
+    <!-- Para autenticación con Google -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
     
     <!-- Contenedor Principal -->
     <main id="app-root">
         <!-- Esqueleto de la interfaz -->
+        <div class="flex flex-col items-center justify-center h-screen bg-gray-100">
+            <h1 class="text-2xl font-bold mb-6">Bienvenido a mi PWA</h1>
+    
+            <div id="googleBtn"></div>
+        </div>
     </main>
 
     <!-- Importaciones de Scripts -->
