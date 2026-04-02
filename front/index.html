@@ -3,33 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sello Dorado PWA</title>
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#ffffff">
-    
-    <!-- CSS (Salida compilada de Tailwind / SCSS) -->
-    <link rel="stylesheet" href="/src/css/styles.css">
-</head>
-<body class="bg-gray-100 text-gray-900">
-    
-    <!-- Contenedor Principal -->
-    <main id="app-root">
-        <!-- Esqueleto de la interfaz -->
-    </main>
+    <title>SelloDoradoMX</title>
 
-    <!-- Importaciones de Scripts -->
-    <script type="module" src="/src/js/main.js"></script>
-    <script type="module" src="/src/js/modals.js"></script>
-    
-    <!-- Registro del Service Worker (PWA) -->
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#22c55e">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="bg-gray-100 text-gray-900">
+
+    <!-- HEADER -->
+    <div class="p-4 bg-white shadow">
+        <h1 class="text-xl font-bold text-green-600">SelloDoradoMX</h1>
+        <input id="search" class="w-full p-3 border rounded-lg mt-3" placeholder="Buscar..." />
+    </div>
+
+    <!-- LISTA -->
+    <div id="business-list" class="p-4 grid grid-cols-2 gap-4"></div>
+
+    <!-- JS -->
+    <script type="module" src="js/home.js"></script>
+
+    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js');
-            });
+            navigator.serviceWorker.register('sw.js');
         }
     </script>
+
 </body>
 </html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Responsive -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Detalle - SelloDoradoMX</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#22c55e">
+
+  <!-- CSS opcional -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- HEADER -->
+  <div class="p-4 bg-white shadow flex items-center gap-3">
+    <button onclick="goBack()" class="text-green-600 font-semibold">
+      ← Volver
+    </button>
+    <h2 class="font-bold">Detalle del negocio</h2>
+  </div>
+
+  <div class="p-4">
+
+    <!-- Imagen -->
+    <img id="image" class="rounded-2xl mb-4 w-full h-48 object-cover"/>
+
+    <!-- Nombre -->
+    <h1 id="name" class="text-xl font-bold"></h1>
+
+    <!-- Badge -->
+    <span id="badge" class="inline-block mt-2 px-3 py-1 text-xs rounded-full"></span>
+
+    <!-- Descripción -->
+    <p id="description" class="text-gray-600 mt-3"></p>
+
+    <!-- Botones -->
+    <div class="flex gap-3 mt-5">
+      <a 
+        id="whatsapp" 
+        class="bg-green-500 text-white py-3 rounded-xl font-semibold flex-1 text-center"
+      >
+        WhatsApp
+      </a>
+
+      <a 
+        id="maps" 
+        class="border py-3 rounded-xl flex-1 text-center"
+      >
+        Cómo llegar
+      </a>
+    </div>
+
+  </div>
+
+  <!-- JS -->
+  <script type="module" src="js/detail.js"></script>
+
+  <!-- Lógica extra -->
+  <script>
+    function goBack() {
+      window.location.href = "index.html";
+    }
+  </script>
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+
+</body>
+</html>

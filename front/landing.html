@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SelloDoradoMX</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body class="h-screen bg-cover bg-center relative flex flex-col justify-between"
+      style="background-image: url('assets/images/bg.webp');">
+
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black/40 z-0"></div>
+
+  <!-- CONTENIDO -->
+  <div class="relative z-10 h-full flex flex-col justify-between">
+
+    <!-- LOGO -->
+    <div class="flex justify-center pt-10">
+    <div class="flex items-center gap-4">
+        <img src="assets/images/logo-blanco.png" class="lg:h-36 drop-shadow-2xl" />
+    </div>
+    </div>
+
+    <!-- BOTÓN -->
+    <div class="p-6">
+
+      <div class="flex justify-center">
+        <button 
+          onclick="goLogin()"
+          class="w-full md:w-80 py-4 bg-[#6BB88A] text-white rounded-full font-semibold text-lg uppercase shadow-lg hover:bg-[#7fd1a0] hover:shadow-2xl transition-all duration-300 active:scale-95"
+        >
+          LOGIN
+        </button>
+      </div>
+
+      <p class="text-white text-center mt-4 text-sm">
+        Don't have an account? 
+        <span onclick="goLogin()" class="underline cursor-pointer text-[#97DAB2]">
+          Sign up
+        </span>
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- NAV -->
+  <script>
+    function goLogin() {
+      window.location.href = "auth.html";
+    }
+  </script>
+
+  <!-- SERVICE WORKER -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+
+</body>
+</html>

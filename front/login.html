@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Responsive -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Login - SelloDoradoMX</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#22c55e">
+
+  <!-- CSS opcional -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div class="bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-sm">
+
+    <h2 class="text-xl font-bold text-center mb-4">
+      Welcome to SelloDoradoMX
+    </h2>
+
+    <input 
+      type="email"
+      class="w-full p-3 border rounded-lg mb-3"
+      placeholder="Email"
+    />
+
+    <input 
+      type="password"
+      class="w-full p-3 border rounded-lg mb-3"
+      placeholder="Password"
+    />
+
+    <button 
+      class="bg-green-500 text-white py-3 rounded-xl font-semibold w-full"
+      onclick="login()"
+    >
+      LOGIN
+    </button>
+    <p class="text-sm text-center mt-3">
+      ¿No tienes cuenta? 
+      <a href="#" class="text-green-600 font-semibold">Regístrate</a>
+    </p>
+
+  </div>
+
+  <!-- Login lógica -->
+  <script>
+    function login() {
+      window.location.href = "index.html";
+    }
+  </script>
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+
+</body>
+</html>
