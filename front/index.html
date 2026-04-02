@@ -1,41 +1,85 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SelloDoradoMX</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SelloDoradoMX</title>
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#22c55e">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json">
 </head>
 
-<body class="bg-gray-100 text-gray-900">
+<body class="bg-gray-100">
 
-    <!-- HEADER -->
-    <div class="p-4 bg-white shadow">
-        <h1 class="text-xl font-bold text-green-600">SelloDoradoMX</h1>
-        <input id="search" class="w-full p-3 border rounded-lg mt-3" placeholder="Buscar..." />
+  <!-- HEADER -->
+  <div class="p-4">
+
+    <div class="flex items-center gap-2 mb-4">
+      <img src="assets/images/logo.png" class="h-10">
+      <h1 class="text-xl font-bold text-blue-700">
+        SelloDorado<span class="text-yellow-500">MX</span>
+      </h1>
     </div>
 
-    <!-- LISTA -->
-    <div id="business-list" class="p-4 grid grid-cols-2 gap-4"></div>
+    <!-- SEARCH -->
+    <div class="bg-white rounded-2xl shadow px-4 py-3 flex items-center gap-3">
+      <span><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#d2d2d2" class="bi bi-search" viewBox="0 0 16 16">
+  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+</svg></span>
+      <input id="search" 
+        class="w-full outline-none"
+        placeholder="Search">
+    </div>
 
-    <!-- JS -->
-    <script type="module" src="js/home.js"></script>
+  </div>
 
-    <!-- Service Worker -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-    </script>
+  <!-- CATEGORÍAS -->
+  <div class="px-4 flex gap-4 overflow-x-auto text-sm mb-4">
+
+    <button class="text-green-600 font-semibold">Top</button>
+    <button>Gastronomy</button>
+    <button>Culture</button>
+    <button>Adventure</button>
+
+  </div>
+
+  <!-- SECCIÓN TOP -->
+  <div class="px-4 mb-6">
+
+    <h2 class="font-semibold mb-3">SelloDorado</h2>
+
+    <div id="top-list" class="flex gap-4 overflow-x-auto"></div>
+
+  </div>
+
+  <!-- SECCIÓN CULTURE -->
+  <div class="px-4 mb-20">
+
+    <h2 class="font-semibold mb-3">Culture</h2>
+
+    <div id="culture-list" class="grid grid-cols-2 lg:grid-cols-6 gap-4"></div>
+
+  </div>
+
+  <!-- NAVBAR -->
+  <div class="fixed bottom-0 left-0 w-full bg-white shadow flex justify-around py-3">
+
+    <button class="text-green-500 text-xl"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-house-door-fill" viewBox="0 0 16 16">
+  <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
+</svg></button>
+    <button class="text-gray-400 text-xl"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#d2d2d2" class="bi bi-heart-fill" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
+</svg></button>
+    <button class="text-gray-400 text-xl"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#d2d2d2" class="bi bi-person-fill" viewBox="0 0 16 16">
+  <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+</svg></button>
+    <button class="text-gray-400 text-xl"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#d2d2d2" class="bi bi-door-closed-fill" viewBox="0 0 16 16">
+  <path d="M12 1a1 1 0 0 1 1 1v13h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V2a1 1 0 0 1 1-1zm-2 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+</svg></button>
+
+  </div>
+
+  <script type="module" src="js/home.js"></script>
 
 </body>
 </html>
