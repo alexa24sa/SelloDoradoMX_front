@@ -36,12 +36,12 @@ async function handleCredentialResponse(response) {
 
     // D. Enviar el token al Backend de Spring Boot
     try {
-        const backResponse = await fetch("http://localhost:8080/api/auth/google", {
+        const backResponse = await fetch("http://localhost:8080/api/v1/users/auth/google", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "text/plain"
             },
-            body: JSON.stringify({ token: idToken })
+            body: idToken
         });
 
         if (backResponse.ok) {
