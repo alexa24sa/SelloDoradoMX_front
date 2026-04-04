@@ -145,6 +145,88 @@
 
   </div><!-- /.app-container -->
 
+  <!-- ===== MODAL: Inicio de sesión requerido ===== -->
+  <div id="login-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal-card">
+
+      <!-- Botón cerrar -->
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Ícono decorativo -->
+      <div class="modal-icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cuerpo del usuario -->
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <!-- Corazón pequeño sobre el usuario -->
+          <path d="M15.5 4.5c.8-.8 2.1-.8 2.9 0 .8.8.8 2.1 0 2.9L15.5 10.5l-2.9-3.1c-.8-.8-.8-2.1 0-2.9.8-.8 2.1-.8 2.9 0z"
+                fill="#FF4455" stroke="none"/>
+          <!-- Base cuerpo -->
+          <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <!-- Título -->
+      <h2 class="modal-title" id="modal-title">Inicia sesión para guardar</h2>
+
+      <!-- Subtítulo -->
+      <p class="modal-subtitle">Con una cuenta gratuita puedes:</p>
+
+      <!-- Lista de beneficios -->
+      <ul class="modal-benefits" aria-label="Beneficios de la cuenta">
+        <li>
+          <span class="benefit-icon" aria-hidden="true">
+            <!-- Corazón -->
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </span>
+          <span>Guardar tus negocios favoritos</span>
+        </li>
+        <li>
+          <span class="benefit-icon" aria-hidden="true">
+            <!-- Estrella -->
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </span>
+          <span>Calificar y reseñar negocios</span>
+        </li>
+        <li>
+          <span class="benefit-icon" aria-hidden="true">
+            <!-- Comentario -->
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/>
+            </svg>
+          </span>
+          <span>Leer reseñas verificadas</span>
+        </li>
+        <li>
+          <span class="benefit-icon benefit-icon--whatsapp" aria-hidden="true">
+            <!-- WhatsApp -->
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.555 4.118 1.528 5.845L.057 23.899a.53.53 0 0 0 .644.678l6.267-1.643A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.021-1.378l-.36-.214-3.724.976.993-3.633-.235-.374A9.783 9.783 0 0 1 2.182 12C2.182 6.572 6.572 2.182 12 2.182c5.428 0 9.818 4.39 9.818 9.818 0 5.427-4.39 9.818-9.818 9.818z"/>
+            </svg>
+          </span>
+          <span>Contacto seguro por WhatsApp</span>
+        </li>
+      </ul>
+
+      <!-- Botones -->
+      <div class="modal-actions">
+        <a href="auth.html" class="modal-btn-primary">Iniciar sesión / Regístrate</a>
+        <button class="modal-btn-secondary" id="modal-dismiss-btn">Ahora no</button>
+      </div>
+
+    </div>
+  </div><!-- /#login-modal-backdrop -->
+
   <!-- ===== GOOGLE TRANSLATE: Widget gratuito (lado cliente, sin coste de API) ===== -->
   <script>
     function googleTranslateElementInit() {

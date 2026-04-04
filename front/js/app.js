@@ -93,6 +93,38 @@ let activeCategory = 'all';
 let allBusinesses = [];
 let allNearest = [];
 
+/* ── Modal: Inicio de sesión requerido ── */
+function showLoginModal() {
+  const backdrop = document.getElementById('login-modal-backdrop');
+  if (!backdrop) return;
+  backdrop.removeAttribute('hidden');
+  document.getElementById('modal-close-btn').focus();
+}
+
+function hideLoginModal() {
+  const backdrop = document.getElementById('login-modal-backdrop');
+  if (backdrop) backdrop.setAttribute('hidden', '');
+}
+
+// Cerrar con X, "Ahora no" o clic en el backdrop
+document.addEventListener('DOMContentLoaded', function () {
+  const closeBtn   = document.getElementById('modal-close-btn');
+  const dismissBtn = document.getElementById('modal-dismiss-btn');
+  const backdrop   = document.getElementById('login-modal-backdrop');
+
+  if (closeBtn)   closeBtn.addEventListener('click', hideLoginModal);
+  if (dismissBtn) dismissBtn.addEventListener('click', hideLoginModal);
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) hideLoginModal();
+    });
+    // Cerrar con Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !backdrop.hasAttribute('hidden')) hideLoginModal();
+    });
+  }
+});
+
 function createCardHTML(b) {
   const filled = Math.round(b.rating);
   const stars = '\u2605'.repeat(filled) + '\u2606'.repeat(5 - filled);
@@ -242,10 +274,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search-input');
   if (searchInput) searchInput.addEventListener('input', applyFilters);
 
-  // 4. Toggle favorito
+  // 4. Toggle favorito — requiere sesión iniciada
   document.body.addEventListener('click', (e) => {
     const btn = e.target.closest('.card-favorite');
     if (!btn) return;
+
+    const isLoggedIn = !!localStorage.getItem('token');
+    if (!isLoggedIn) {
+      showLoginModal();
+      return;
+    }
+
     btn.classList.toggle('liked');
     btn.setAttribute('aria-pressed', btn.classList.contains('liked'));
     // TODO: POST /favorites/{id} cuando se integre JWT
