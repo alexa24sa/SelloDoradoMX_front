@@ -1,83 +1,216 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-
-  <!-- Responsive -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Detalle - SelloDoradoMX</title>
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#22c55e">
-
-  <!-- CSS opcional -->
-  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#6BB88A" />
+  <title>Detalle – SelloDoradoMX</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 
-<body class="bg-gray-100">
+<body>
+<div class="app-container">
 
-  <!-- HEADER -->
-  <div class="p-4 bg-white shadow flex items-center gap-3">
-    <button onclick="goBack()" class="text-green-600 font-semibold">
-      ← Volver
+  <!-- ===== HERO IMAGE (≈40% de la pantalla) ===== -->
+  <div class="detail-hero">
+
+    <!-- Botón volver -->
+    <button class="detail-back-btn" onclick="goBack()" aria-label="Volver">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </button>
-    <h2 class="font-bold">Detalle del negocio</h2>
-  </div>
 
-  <div class="p-4">
+    <!-- Foto principal del negocio -->
+    <img
+      id="detail-image"
+      src="https://picsum.photos/800/500?random=11"
+      alt="Foto del negocio"
+      class="detail-hero-img"
+    />
 
-    <!-- Imagen -->
-    <img id="image" class="rounded-2xl mb-4 w-full h-48 object-cover"/>
+    <!-- Badge "Sello Dorado" encima de la foto -->
+    <img id="detail-badge" src="./assets/insignia.png" alt="Sello Dorado" class="badge-icon" hidden />
 
-    <!-- Nombre -->
-    <h1 id="name" class="text-xl font-bold"></h1>
+  </div><!-- /.detail-hero -->
 
-    <!-- Badge -->
-    <span id="badge" class="inline-block mt-2 px-3 py-1 text-xs rounded-full"></span>
+  <!-- ===== PANEL DE DETALLE (se superpone al hero) ===== -->
+  <div class="detail-panel">
 
-    <!-- Descripción -->
-    <p id="description" class="text-gray-600 mt-3"></p>
-
-    <!-- Botones -->
-    <div class="flex gap-3 mt-5">
-      <a 
-        id="whatsapp" 
-        class="bg-green-500 text-white py-3 rounded-xl font-semibold flex-1 text-center"
-      >
-        WhatsApp
-      </a>
-
-      <a 
-        id="maps" 
-        class="border py-3 rounded-xl flex-1 text-center"
-      >
-        Cómo llegar
-      </a>
+    <!-- Encabezado: nombre + favorito -->
+    <div class="detail-panel-header">
+      <h1 id="detail-name" class="detail-title">Cargando…</h1>
+      <button id="detail-fav-btn" class="detail-fav-btn" aria-label="Agregar a favoritos" aria-pressed="false">
+        <svg class="detail-heart-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </button>
     </div>
 
+    <!-- Ubicación -->
+    <div class="detail-location">
+      <svg class="detail-location-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+      <span id="detail-address">—</span>
+    </div>
+
+    <!-- Estrellas de calificación -->
+    <div id="detail-stars" class="detail-stars" aria-label="Calificación">
+      <span class="detail-star detail-star--filled">★</span>
+      <span class="detail-star detail-star--filled">★</span>
+      <span class="detail-star detail-star--filled">★</span>
+      <span class="detail-star detail-star--filled">★</span>
+      <span class="detail-star">★</span>
+    </div>
+
+    <!-- Pestañas: Description / Ratings -->
+    <div class="detail-tabs" role="tablist">
+      <button
+        class="detail-tab detail-tab--active"
+        id="tab-desc"
+        role="tab"
+        aria-selected="true"
+        onclick="switchTab('desc')"
+      >Description</button>
+      <button
+        class="detail-tab"
+        id="tab-ratings"
+        role="tab"
+        aria-selected="false"
+        onclick="switchTab('ratings')"
+      >Ratings</button>
+    </div>
+
+    <!-- Panel: Descripción -->
+    <div id="panel-desc" class="detail-tab-panel" role="tabpanel">
+      <p id="detail-description" class="detail-description-text">
+        Cargando descripción…
+      </p>
+    </div>
+
+    <!-- Panel: Ratings (inicialmente oculto) -->
+    <div id="panel-ratings" class="detail-tab-panel detail-tab-panel--hidden" role="tabpanel">
+      <p class="detail-description-text" style="color: var(--color-text-light);">
+        Aún no hay reseñas disponibles.
+      </p>
+    </div>
+
+    <!-- ── Sección Facilities ── -->
+    <section class="detail-facilities">
+      <h3 class="detail-facilities-title">Facilities</h3>
+      <div class="facilities-grid">
+
+        <div class="facility-item">
+          <div class="facility-icon-wrap">
+            <!-- Wifi -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <span>Wifi</span>
+        </div>
+
+        <div class="facility-item">
+          <div class="facility-icon-wrap">
+            <!-- Estacionamiento -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="2" y="4" width="20" height="16" rx="3"/>
+              <path d="M10 8h3a2 2 0 0 1 0 4h-3v4M10 8v8"/>
+            </svg>
+          </div>
+          <span>Park</span>
+        </div>
+
+        <div class="facility-item">
+          <div class="facility-icon-wrap">
+            <!-- Inglés / idioma -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <span>English</span>
+        </div>
+
+        <div class="facility-item">
+          <div class="facility-icon-wrap">
+            <!-- Baño -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M4 12h16M4 12V6a2 2 0 0 1 2-2h2M20 12v2a8 8 0 0 1-16 0v-2"/>
+              <path d="M8 4v4"/>
+            </svg>
+          </div>
+          <span>Bathroom</span>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /.detail-panel -->
+
+  <!-- ===== BOTONES FLOTANTES: Go! + WhatsApp ===== -->
+  <div class="detail-actions-bar">
+    <a id="detail-maps-btn" href="#" class="btn-go" aria-label="Abrir en Maps" target="_blank" rel="noopener noreferrer">Go! 🗺</a>
+    <a id="detail-whatsapp" href="#" class="btn-whatsapp" aria-label="Contactar por WhatsApp" target="_blank" rel="noopener noreferrer">WhatsApp</a>
   </div>
 
-  <!-- JS -->
-  <script type="module" src="js/detail.js"></script>
+  <!-- ===== NAV INFERIOR ===== -->
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <button class="nav-item nav-item--active" aria-label="Inicio" onclick="window.location.href='index.html'">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      </svg>
+    </button>
+    <button class="nav-item" aria-label="Favoritos">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    </button>
+    <button class="nav-item" aria-label="Mapa">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+      </svg>
+    </button>
+    <button class="nav-item" aria-label="Perfil">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+      </svg>
+    </button>
+  </nav>
 
-  <!-- Lógica extra -->
-  <script>
-    function goBack() {
-      window.location.href = "index.html";
-    }
-  </script>
+</div><!-- /.app-container -->
 
-  <!-- Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-  </script>
+<script>
+  function goBack() {
+    window.history.length > 1 ? window.history.back() : (window.location.href = 'index.html');
+  }
+
+  function switchTab(tab) {
+    const allTabs   = document.querySelectorAll('.detail-tab');
+    const allPanels = document.querySelectorAll('.detail-tab-panel');
+    allTabs.forEach(t => { t.classList.remove('detail-tab--active'); t.setAttribute('aria-selected', 'false'); });
+    allPanels.forEach(p => p.classList.add('detail-tab-panel--hidden'));
+
+    document.getElementById('tab-' + tab).classList.add('detail-tab--active');
+    document.getElementById('tab-' + tab).setAttribute('aria-selected', 'true');
+    document.getElementById('panel-' + tab).classList.remove('detail-tab-panel--hidden');
+  }
+
+  // Favorito toggle
+  document.getElementById('detail-fav-btn').addEventListener('click', function () {
+    this.classList.toggle('liked');
+    this.setAttribute('aria-pressed', this.classList.contains('liked'));
+  });
+
+  // Service Worker
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+
+<!-- Carga datos desde localStorage + API -->
+<script type="module" src="js/detail.js"></script>
 
 </body>
 </html>

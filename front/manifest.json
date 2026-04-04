@@ -1,20 +1,25 @@
 {
-  "name": "Sello Dorado",
+  "name": "SelloDoradoMX",
   "short_name": "SelloDorado",
-  "start_url": "/",
+  "description": "Conecta turistas con negocios locales durante el Mundial 2026",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "background_color": "#FAEDD6",
+  "theme_color": "#6BB88A",
   "icons": [
     {
-      "src": "https://placehold.co/192x192.png",
+      "src": "https://placehold.co/192x192/6BB88A/FFDFA3?text=SD",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://placehold.co/512x512.png",
+      "src": "https://placehold.co/512x512/6BB88A/FFDFA3?text=SD",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

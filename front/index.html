@@ -1,142 +1,168 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#6BB88A">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#6BB88A" />
+  <meta name="description" content="SelloDoradoMX – Conecta turistas con negocios locales durante el Mundial 2026" />
   <title>SelloDoradoMX</title>
-  
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/styles.css">
-  
-  <!-- Iconos de IonIcons (para los SVG de la nav) -->
-  <script type="module" src="https://cdn.jsdelivr.net/npm/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-  <noscript><script src="https://cdn.jsdelivr.net/npm/ionicons@7.1.0/dist/ionicons/ionicons.js"></script></noscript>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="SelloDorado" />
+
+  <!-- Estilos propios (Mobile-First, sin Tailwind) -->
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 
 <body>
-  <!-- Contenedor Principal -->
   <div class="app-container">
 
-    <!-- HEADER -->
+    <!-- ===== HEADER ===== -->
     <header class="header">
       <div class="header-content">
+
+        <!-- Logo: insignia + texto bicolor (Figma) -->
         <div class="logo-section">
-          <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="20" cy="20" r="18" stroke="#6BB88A" stroke-width="2"/>
-            <path d="M20 8L28 32H12L20 8Z" fill="#6BB88A"/>
-          </svg>
-          <h1 class="logo-text">
-            SelloDorado<span class="logo-mx">MX</span>
-          </h1>
+          <img
+            src="./assets/insignia.png"
+            alt="Sello Dorado insignia"
+            class="logo-icon"
+            onerror="this.style.display='none'"
+          />
+          <span class="logo-text">
+            <span class="logo-brand">SelloDorado</span><span class="logo-mx">MX</span>
+          </span>
         </div>
+
+        <!-- Widget de traducción gratuito (Google Translate) -->
+        <div id="google_translate_element" class="translate-widget"></div>
+
       </div>
     </header>
 
-    <!-- MAPA Y SEARCH BAR -->
-    <section class="hero-section">
+    <!-- ===== MAPA PLACEHOLDER (Fijo, ocupa la mitad superior) ===== -->
+    <!-- TODO: Reemplazar el <img> con un <iframe> de Google Maps cuando tengamos la API Key -->
+    <section class="hero-section" aria-label="Mapa de negocios cercanos">
       <div class="map-container">
-        <!-- Placeholder div en lugar del mapa por ahora -->
-        <img src="https://placehold.co/480x480/E8E8E8/999999?text=Mapa" alt="Mapa" class="map-image">
+        <img
+          src="https://picsum.photos/800/400?random=77"
+          alt="Vista del mapa de la zona"
+          class="map-image"
+        />
+        <div class="map-pin-overlay" aria-hidden="true">
+          <svg class="map-pin-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#6BB88A"/>
+          </svg>
+        </div>
       </div>
     </section>
 
-    <!-- EFECTO BOTTOM SHEET -->
-    <div class="bottom-sheet">
-      <!-- Handle para deslizar -->
-      <div class="drag-handle"></div>
+    <!-- ===== BOTTOM SHEET PANEL ===== -->
+    <main class="bottom-sheet">
 
-      <!-- Search Bar Flotante -->
+      <!-- Drag handle: indica que el panel puede deslizarse -->
+      <div class="drag-handle" role="separator" aria-hidden="true"></div>
+
+      <!-- Barra de búsqueda -->
       <div class="search-bar-wrapper">
         <div class="search-bar">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <input 
-            type="text" 
-            class="search-input" 
-            placeholder="Search"
-            aria-label="Buscar lugares"
-          >
+          <input
+            id="search-input"
+            class="search-input"
+            type="search"
+            placeholder="Buscar negocios, comida, cultura..."
+            autocomplete="off"
+            aria-label="Buscar negocios"
+          />
         </div>
       </div>
 
-      <!-- CATEGORÍAS -->
-      <section class="categories-section">
-        <div class="categories-scroll">
-          <button class="category-btn category-btn--active" data-category="top">
-            Top
-          </button>
-          <button class="category-btn" data-category="gastronomy">
-            Gastronomy
-          </button>
-          <button class="category-btn" data-category="culture">
-            Culture
-          </button>
-          <button class="category-btn" data-category="adventure">
-            Adventure
-          </button>
+      <!-- Filtros de categoría (scroll horizontal) -->
+      <div class="categories-section">
+        <div class="categories-scroll" role="tablist" aria-label="Categorías de negocios">
+          <button class="category-btn category-btn--active" data-category="all" role="tab" aria-selected="true">Top</button>
+          <button class="category-btn" data-category="gastronomy" role="tab" aria-selected="false">Gastronomía</button>
+          <button class="category-btn" data-category="culture" role="tab" aria-selected="false">Cultura</button>
+          <button class="category-btn" data-category="adventure" role="tab" aria-selected="false">Aventura</button>
+          <button class="category-btn" data-category="sports" role="tab" aria-selected="false">Deportes</button>
         </div>
-      </section>
+      </div>
 
-      <!-- TARJETAS EN GRID -->
+      <!-- Sección: Negocios con Sello Dorado -->
       <section class="content-section">
-        
-        <!-- SelloDorado -->
         <div class="section-label">
-          <h2>SelloDorado</h2>
+          <h2>SelloDorado ⭐</h2>
         </div>
-
-        <div class="cards-grid" id="businesses-grid">
-          <!-- Las tarjetas se renderizarán aquí vía JS -->
-        </div>
-
-        <!-- Más Categorías de Tarjetas -->
-        <div class="section-label">
-          <h2>Culture</h2>
-        </div>
-
-        <div class="cards-grid" id="culture-grid">
-          <!-- Las tarjetas se renderizarán aquí vía JS -->
-        </div>
-
+        <div id="businesses-grid" class="cards-grid" aria-busy="true" aria-label="Negocios con Sello Dorado"></div>
       </section>
-    </div>
 
-    <!-- Espaciado inferior para la nav -->
-    <div style="height: 80px;"></div>
+      <!-- Sección: Negocios Cercanos (geolocalización) -->
+      <section class="content-section">
+        <div class="section-label">
+          <h2>Cerca de ti 📍</h2>
+        </div>
+        <div id="nearest-grid" class="cards-grid" aria-busy="true" aria-label="Negocios cercanos"></div>
+      </section>
 
-    <!-- NAVEGACIÓN INFERIOR FIJA -->
-    <nav class="bottom-nav">
-      <button class="nav-item nav-item--active" aria-label="Inicio" title="Inicio">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    </main>
+
+    <!-- ===== NAVEGACIÓN INFERIOR FIJA ===== -->
+    <nav class="bottom-nav" aria-label="Navegación principal">
+
+      <button class="nav-item nav-item--active" aria-label="Inicio">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
         </svg>
       </button>
 
-      <button class="nav-item" aria-label="Favoritos" title="Favoritos">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      <button class="nav-item" aria-label="Favoritos">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
         </svg>
       </button>
 
-      <button class="nav-item" aria-label="Búsqueda" title="Búsqueda">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.35-4.35"></path>
+      <button class="nav-item" aria-label="Mapa">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
         </svg>
       </button>
 
-      <button class="nav-item" aria-label="Perfil" title="Perfil">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      <button class="nav-item" aria-label="Perfil" onclick="window.location.href='auth.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
         </svg>
       </button>
+
     </nav>
 
-  </div>
+  </div><!-- /.app-container -->
 
+  <!-- ===== GOOGLE TRANSLATE: Widget gratuito (lado cliente, sin coste de API) ===== -->
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'es',
+        includedLanguages: 'en,es,fr,de,zh-CN,ja,pt,it,ru,ar',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
+
+  <!-- SweetAlert2 (modal de bienvenida / certificación) -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+  <!-- Lógica principal de la app (fetch + renders + filtros) -->
   <script src="js/app.js"></script>
+
 </body>
 </html>

@@ -1,87 +1,203 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auth</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#6BB88A" />
+  <title>Acceso – SelloDoradoMX</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 
-<body class="h-screen bg-cover bg-center flex items-center justify-center"
-      style="background-image: url('assets/images/bg.png');">
+<body class="auth-page">
 
-  <!-- Overlay -->
-  <div class="absolute inset-0 bg-black/40"></div>
+  <div class="app-container">
 
-  <!-- Card -->
-  <div class="relative bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl w-[90%] max-w-sm">
+    <!-- ===== FONDO + LOGO BLANCO ===== -->
+    <div class="auth-hero">
+      <img
+        src="./assets/images/bg.png"
+        alt="Fondo SelloDoradoMX"
+        class="auth-hero-bg"
+      />
+      <div class="auth-hero-overlay" aria-hidden="true"></div>
 
-    <!-- Logo -->
-    <div class="flex items-center gap-2 mb-4">
-      <span>📍</span>
-      <h2 class="font-semibold">SelloDoradoMX</h2>
+      <!-- Logo blanco centrado sobre la imagen -->
+      <div class="auth-hero-logo">
+        <img
+          src="./assets/images/logo-blanco.png"
+          alt="SelloDoradoMX"
+          class="auth-logo-img"
+          onerror="this.replaceWith(document.createTextNode('SelloDoradoMX'))"
+        />
+      </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="flex bg-gray-200 rounded-full p-1 mb-4">
-      <button id="loginTab" onclick="showLogin()" 
-        class="flex-1 py-2 rounded-full bg-green-500 text-white">
-        LOGIN
-      </button>
-      <button id="signupTab" onclick="showSignup()" 
-        class="flex-1 py-2 rounded-full text-gray-500">
-        SIGN UP
-      </button>
-    </div>
+    <!-- ===== CARD FORMULARIO ===== -->
+    <div class="auth-card">
 
-    <!-- LOGIN FORM -->
-    <div id="loginForm">
-      <p class="text-sm mb-3">Welcome to SelloDoradoMX!</p>
+      <!-- Tabs LOGIN / SIGN UP -->
+      <div class="auth-tabs" role="tablist">
+        <button
+          id="loginTab"
+          class="auth-tab"
+          role="tab"
+          aria-selected="true"
+          onclick="showLogin()"
+        >LOGIN</button>
+        <button
+          id="signupTab"
+          class="auth-tab auth-tab--active"
+          role="tab"
+          aria-selected="false"
+          onclick="showSignup()"
+        >SIGN UP</button>
+      </div>
 
-      <input class="w-full p-3 border rounded-lg mb-3" placeholder="Email">
-      <input class="w-full p-3 border rounded-lg mb-3" placeholder="Password">
+      <h2 class="auth-welcome">Welcome to SelloDoradoMX!</h2>
 
-      <button onclick="login()" 
-        class="w-full bg-green-500 text-white py-3 rounded-xl">
-        LOGIN
-      </button>
-    </div>
+      <!-- ── LOGIN FORM ── -->
+      <form id="loginForm" class="auth-form auth-form--hidden" novalidate>
+        <input
+          class="auth-input"
+          type="email"
+          placeholder="Email"
+          autocomplete="email"
+          aria-label="Email"
+          required
+        />
+        <input
+          class="auth-input"
+          type="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          aria-label="Contraseña"
+          required
+        />
 
-    <!-- SIGNUP FORM -->
-    <div id="signupForm" class="hidden">
-      <input class="w-full p-3 border rounded-lg mb-2" placeholder="Name">
-      <input class="w-full p-3 border rounded-lg mb-2" placeholder="Lastname">
-      <input class="w-full p-3 border rounded-lg mb-2" placeholder="Email">
-      <input class="w-full p-3 border rounded-lg mb-3" placeholder="Password">
+        <button type="button" class="btn-primary" onclick="login()">LOGIN</button>
 
-      <button class="w-full bg-green-500 text-white py-3 rounded-xl">
-        Create Account
-      </button>
-    </div>
+        <!-- Divider -->
+        <div class="auth-divider"><span>o</span></div>
 
-  </div>
+        <!-- Google -->
+        <button type="button" class="btn-google" onclick="loginWithGoogle()">
+          <svg class="btn-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Login with Google
+        </button>
+      </form>
+
+      <!-- ── SIGNUP FORM ── -->
+      <form id="signupForm" class="auth-form" novalidate>
+        <input
+          class="auth-input"
+          type="text"
+          placeholder="Name"
+          autocomplete="given-name"
+          aria-label="Nombre"
+          required
+        />
+        <input
+          class="auth-input"
+          type="text"
+          placeholder="Lastname"
+          autocomplete="family-name"
+          aria-label="Apellido"
+          required
+        />
+        <input
+          class="auth-input"
+          type="email"
+          placeholder="Email"
+          autocomplete="email"
+          aria-label="Email"
+          required
+        />
+        <input
+          class="auth-input"
+          type="password"
+          placeholder="Password"
+          autocomplete="new-password"
+          aria-label="Contraseña"
+          required
+        />
+        <input
+          class="auth-input"
+          type="text"
+          placeholder="Business Name"
+          autocomplete="organization"
+          aria-label="Nombre del negocio"
+        />
+
+        <button type="button" class="btn-primary" onclick="signup()">Create Account</button>
+
+        <!-- Divider -->
+        <div class="auth-divider"><span>o</span></div>
+
+        <!-- Google -->
+        <button type="button" class="btn-google" onclick="loginWithGoogle()">
+          <svg class="btn-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign up with Google
+        </button>
+      </form>
+
+      <!-- "¿Eres turista?" enlace del mockup -->
+      <p class="auth-tourist-link">
+        Are you a tourist?
+        <a href="index.html" class="auth-tourist-cta">Click here</a>
+      </p>
+
+    </div><!-- /.auth-card -->
+
+  </div><!-- /.app-container -->
 
   <script>
-    function showLogin() {
-      document.getElementById("loginForm").classList.remove("hidden");
-      document.getElementById("signupForm").classList.add("hidden");
+    const loginTab   = document.getElementById('loginTab');
+    const signupTab  = document.getElementById('signupTab');
+    const loginForm  = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
 
-      document.getElementById("loginTab").classList.add("bg-green-500","text-white");
-      document.getElementById("signupTab").classList.remove("bg-green-500","text-white");
+    function showLogin() {
+      loginForm.classList.remove('auth-form--hidden');
+      signupForm.classList.add('auth-form--hidden');
+      loginTab.classList.add('auth-tab--active');
+      loginTab.setAttribute('aria-selected', 'true');
+      signupTab.classList.remove('auth-tab--active');
+      signupTab.setAttribute('aria-selected', 'false');
     }
 
     function showSignup() {
-      document.getElementById("loginForm").classList.add("hidden");
-      document.getElementById("signupForm").classList.remove("hidden");
-
-      document.getElementById("signupTab").classList.add("bg-green-500","text-white");
-      document.getElementById("loginTab").classList.remove("bg-green-500","text-white");
+      signupForm.classList.remove('auth-form--hidden');
+      loginForm.classList.add('auth-form--hidden');
+      signupTab.classList.add('auth-tab--active');
+      signupTab.setAttribute('aria-selected', 'true');
+      loginTab.classList.remove('auth-tab--active');
+      loginTab.setAttribute('aria-selected', 'false');
     }
 
     function login() {
-      window.location.href = "index.html";
+      // TODO: POST /users/auth/login y guardar JWT en localStorage
+      window.location.href = 'index.html';
+    }
+
+    function signup() {
+      // TODO: POST /users/register
+      window.location.href = 'index.html';
+    }
+
+    function loginWithGoogle() {
+      // TODO: POST /users/auth/google
+      window.location.href = 'index.html';
     }
   </script>
 

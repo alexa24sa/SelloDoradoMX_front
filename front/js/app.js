@@ -1,34 +1,37 @@
 // URL base del API local (Spring Boot)
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
-// Mocks de negocios para cuando el backend esté apagado o falle la petición
+// Mocks de negocios (fallback cuando el backend está apagado)
 const mockBusinesses = [
   {
     id: 1,
     name: 'Fonda "Doña María"',
-    location: 'Antique / Burrito',
+    location: 'Centro Histórico',
     rating: 4.8,
     category: 'gastronomy',
     imageUrl: 'https://picsum.photos/400/500?random=1',
-    isFavorite: false
+    isFavorite: false,
+    hasGoldenSeal: true
   },
   {
     id: 2,
-    name: 'Antojitos "La pimienta"',
-    location: 'Sakura / Pimienta',
+    name: 'Antojitos "La Pimienta"',
+    location: 'Mercado Libertad',
     rating: 4.5,
     category: 'gastronomy',
     imageUrl: 'https://picsum.photos/400/500?random=2',
-    isFavorite: true
+    isFavorite: true,
+    hasGoldenSeal: true
   },
   {
     id: 3,
-    name: 'Artesanías "El panalote"',
+    name: 'Artesanías "El Papalote"',
     location: 'Santa Clara / Gante',
     rating: 4.9,
     category: 'culture',
     imageUrl: 'https://picsum.photos/400/500?random=3',
-    isFavorite: false
+    isFavorite: false,
+    hasGoldenSeal: true
   },
   {
     id: 4,
@@ -37,7 +40,8 @@ const mockBusinesses = [
     rating: 4.6,
     category: 'culture',
     imageUrl: 'https://picsum.photos/400/500?random=4',
-    isFavorite: false
+    isFavorite: false,
+    hasGoldenSeal: true
   }
 ];
 
@@ -49,117 +53,232 @@ const mockNearestBusinesses = [
     rating: 4.7,
     category: 'gastronomy',
     imageUrl: 'https://picsum.photos/400/500?random=5',
-    isFavorite: false
+    isFavorite: false,
+    hasGoldenSeal: false
   },
   {
     id: 6,
-    name: 'Centro Cultural',
+    name: 'Centro Cultural Telmex',
     location: 'A 500m de ti',
     rating: 4.9,
     category: 'culture',
     imageUrl: 'https://picsum.photos/400/500?random=6',
-    isFavorite: true
+    isFavorite: true,
+    hasGoldenSeal: false
+  },
+  {
+    id: 7,
+    name: 'Tianguis de Artesanías',
+    location: 'A 800m de ti',
+    rating: 4.3,
+    category: 'culture',
+    imageUrl: 'https://picsum.photos/400/500?random=7',
+    isFavorite: false,
+    hasGoldenSeal: false
+  },
+  {
+    id: 8,
+    name: 'Bar "El Refugio"',
+    location: 'A 1.2km de ti',
+    rating: 4.5,
+    category: 'adventure',
+    imageUrl: 'https://picsum.photos/400/500?random=8',
+    isFavorite: false,
+    hasGoldenSeal: false
   }
 ];
 
-/**
- * Función genérica para renderizar tarjetas de negocios
- * @param {Array} businesses - Array de objetos de negocios
- * @param {HTMLElement} container - Contenedor del DOM donde inyectar las tarjetas
- */
-function renderBusinessCards(businesses, container) {
-  if (!container) return;
-  
-  container.innerHTML = ''; // Limpiar contenedor actual
-  
-  businesses.forEach(business => {
-    const cardHTML = `
-      <div class="card" data-id="${business.id}" data-category="${business.category}">
-        <div class="card-image-wrapper">
-          <img src="${business.imageUrl}" alt="${business.name}" class="card-image">
-          <div class="card-overlay"></div>
-          <button class="card-favorite ${business.isFavorite ? 'liked' : ''}" aria-label="Agregar a favoritos">
-            <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-          </button>
+// Estado global
+let activeCategory = 'all';
+let allBusinesses = [];
+let allNearest = [];
+
+function createCardHTML(b) {
+  const filled = Math.round(b.rating);
+  const stars = '\u2605'.repeat(filled) + '\u2606'.repeat(5 - filled);
+  return `
+    <div class="card" data-id="${b.id}" data-category="${b.category}" role="article">
+      <div class="card-image-wrapper">
+        <img
+          src="${b.imageUrl}"
+          alt="${b.name}"
+          class="card-image"
+          loading="lazy"
+          onerror="this.src='https://picsum.photos/400/500?random=${b.id + 10}'"
+        />
+        <div class="card-overlay" aria-hidden="true"></div>
+        <button
+          class="card-favorite${b.isFavorite ? ' liked' : ''}"
+          aria-label="Agregar a favoritos"
+          aria-pressed="${b.isFavorite}"
+          data-id="${b.id}"
+        >
+          <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </button>
+        ${b.hasGoldenSeal ? '<span class="seal-badge" title="Verificado con Sello Dorado">⭐</span>' : ''}
+      </div>
+      <div class="card-content">
+        <h3 class="card-title">${b.name}</h3>
+        <div class="card-location">
+          <svg class="location-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          <span>${b.location}</span>
         </div>
-        <div class="card-content">
-          <h3 class="card-title">${business.name}</h3>
-          <div class="card-location">
-            <svg class="location-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5z"/>
-            </svg>
-            <span>${business.location}</span>
-          </div>
-          <div class="card-rating">
-            <span class="rating-stars">★★★★★</span>
-            <span class="rating-count">(${business.rating})</span>
-          </div>
+        <div class="card-rating" aria-label="Calificaci\u00f3n ${b.rating} de 5">
+          <span class="rating-stars" aria-hidden="true">${stars}</span>
+          <span class="rating-count">${b.rating}</span>
         </div>
       </div>
-    `;
-    container.insertAdjacentHTML('beforeend', cardHTML);
-  });
+    </div>
+  `;
+}
+
+function renderBusinessCards(businesses, container) {
+  if (!container) return;
+  if (!businesses.length) {
+    container.innerHTML = '<p class="empty-state">No se encontraron negocios en esta categoría.</p>';
+    container.removeAttribute('aria-busy');
+    return;
+  }
+  container.innerHTML = businesses.map(createCardHTML).join('');
+  container.removeAttribute('aria-busy');
+}
+
+function applyFilters() {
+  const term = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+  const match = (b) => {
+    const byCategory = activeCategory === 'all' || b.category === activeCategory;
+    const bySearch = !term
+      || b.name.toLowerCase().includes(term)
+      || b.location.toLowerCase().includes(term)
+      || b.category.toLowerCase().includes(term);
+    return byCategory && bySearch;
+  };
+  renderBusinessCards(allBusinesses.filter(match), document.getElementById('businesses-grid'));
+  renderBusinessCards(allNearest.filter(match), document.getElementById('nearest-grid'));
 }
 
 /**
  * Función que obtiene todos los negocios
  */
 async function fetchBusinesses() {
-  const container = document.getElementById('businesses-grid');
   try {
-    const response = await fetch(\`\${API_BASE_URL}/businesses\`, {
+    const res = await fetch(`${API_BASE_URL}/businesses`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
-        // 'Authorization': 'Bearer ' + localStorage.getItem('token') // Añadir cuando se integre el JWT
+        // 'Authorization': `Bearer ${localStorage.getItem('token')}` // Descomentar tras integrar JWT
       }
     });
-
-    if (!response.ok) throw new Error('Error al obtener negocios');
-    
-    const data = await response.json();
-    renderBusinessCards(data, container);
-  } catch (error) {
-    console.warn('Backend inactivo o fallo en la petición. Cargando mock de negocios (SelloDorado)...', error);
-    renderBusinessCards(mockBusinesses, container);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    allBusinesses = await res.json();
+  } catch (err) {
+    console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios:', err.message);
+    allBusinesses = mockBusinesses;
   }
+  renderBusinessCards(allBusinesses, document.getElementById('businesses-grid'));
 }
 
 /**
  * Función que obtiene los negocios cercanos
  */
-async function fetchNearestBusinesses() {
-  const container = document.getElementById('culture-grid'); // Usamos el segundo grid por ahora como ejemplo de cercanos
+async function fetchNearestBusinesses(lat, lng) {
+  const container = document.getElementById('nearest-grid');
+  let url = `${API_BASE_URL}/businesses/nearest`;
+  if (lat !== undefined && lng !== undefined) url += `?lat=${lat}&lng=${lng}`;
   try {
-    const response = await fetch(\`\${API_BASE_URL}/businesses/nearest\`, {
+    const res = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    allNearest = await res.json();
+  } catch (err) {
+    console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios cercanos:', err.message);
+    allNearest = mockNearestBusinesses;
+  }
+  renderBusinessCards(allNearest, container);
+}
 
-    if (!response.ok) throw new Error('Error al obtener negocios cercanos');
-    
-    const data = await response.json();
-    renderBusinessCards(data, container);
-  } catch (error) {
-    console.warn('Backend inactivo o fallo en la petición. Cargando mock de negocios cercanos...', error);
-    renderBusinessCards(mockNearestBusinesses, container);
+function loadNearestWithGeo() {
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => fetchNearestBusinesses(coords.latitude, coords.longitude),
+      ()           => fetchNearestBusinesses()
+    );
+  } else {
+    fetchNearestBusinesses();
   }
 }
 
-// Inicialización cuando carga el DOM
+// ─── INIT ───────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+
+  // 1. Cargar datos (fallback a mocks si el backend está apagado)
   fetchBusinesses();
-  fetchNearestBusinesses();
-  
-  // Agregar eventos de favoritos una vez renderizados (simple event delegation)
+  loadNearestWithGeo();
+
+  // 2. Filtro de categorías (event delegation)
+  const categoriesScroll = document.querySelector('.categories-scroll');
+  if (categoriesScroll) {
+    categoriesScroll.addEventListener('click', (e) => {
+      const btn = e.target.closest('.category-btn');
+      if (!btn) return;
+      categoriesScroll.querySelectorAll('.category-btn').forEach((b) => {
+        b.classList.remove('category-btn--active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('category-btn--active');
+      btn.setAttribute('aria-selected', 'true');
+      activeCategory = btn.dataset.category;
+      applyFilters();
+    });
+  }
+
+  // 3. Búsqueda en tiempo real
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+
+  // 4. Toggle favorito
   document.body.addEventListener('click', (e) => {
-    if (e.target.closest('.card-favorite')) {
-      const btn = e.target.closest('.card-favorite');
-      btn.classList.toggle('liked');
-    }
+    const btn = e.target.closest('.card-favorite');
+    if (!btn) return;
+    btn.classList.toggle('liked');
+    btn.setAttribute('aria-pressed', btn.classList.contains('liked'));
+    // TODO: POST /favorites/{id} cuando se integre JWT
   });
+
+  // 5. Navegar al detalle al hacer clic en una tarjeta
+  document.body.addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    if (!card || e.target.closest('.card-favorite')) return;
+    localStorage.setItem('businessId', card.dataset.id);
+    window.location.href = 'detail.html';
+  });
+
+  // 6. Alerta de bienvenida: explica la insignia Sello Dorado (se muestra solo una vez)
+  if (!localStorage.getItem('selloDorado_alerted') && typeof Swal !== 'undefined') {
+    const lang = (navigator.language || 'es').toLowerCase();
+    const isSpanish = lang.startsWith('es');
+
+    Swal.fire({
+      title: isSpanish ? 'Negocios Certificados' : 'Certified Businesses',
+      text: isSpanish
+        ? 'Los negocios con este logo cuentan con capacitación de OLA México, cumpliendo con todas las normas y regulaciones de calidad.'
+        : 'Businesses with this logo are trained by OLA México, complying with all quality norms and regulations.',
+      imageUrl: './assets/insignia.png',
+      imageWidth: 80,
+      imageAlt: 'Sello Dorado',
+      confirmButtonText: isSpanish ? 'Entendido' : 'Got it',
+      confirmButtonColor: '#6BB88A',
+      background: '#ffffff',
+      customClass: { popup: 'swal-sello-popup' }
+    }).then(() => {
+      localStorage.setItem('selloDorado_alerted', '1');
+    });
+  }
+
 });
