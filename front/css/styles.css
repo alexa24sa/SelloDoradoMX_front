@@ -597,15 +597,11 @@ body {
   position: absolute;
   bottom: var(--spacing-sm);
   right: var(--spacing-sm);
-  background-color: var(--color-gold);
-  color: #333;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 7px;
-  border-radius: var(--radius-full);
   z-index: 10;
-  line-height: 1.4;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(253, 185, 19, 0.55));
 }
 
 /* ===============================
