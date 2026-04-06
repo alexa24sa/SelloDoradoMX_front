@@ -16,6 +16,9 @@
 
   <!-- Estilos propios (Mobile-First, sin Tailwind) -->
   <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Leaflet (mapa 100% gratuito, sin API Key) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 </head>
 
 <body>
@@ -40,9 +43,6 @@
 
         <!-- Widget de traducción gratuito (Google Translate) -->
         <div id="google_translate_element" class="translate-widget"></div>
-
-  </div>
-
 
       </div>
     </header>
@@ -219,10 +219,8 @@
     </div>
   </div><!-- /#login-modal-backdrop -->
   
-  <!-- Implementacion de Google Maps -->
-  <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY">
-  </script>
+  <!-- Leaflet JS (mapa 100% gratuito, sin API Key) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
   <!-- ===== GOOGLE TRANSLATE: Widget gratuito (lado cliente, sin coste de API) ===== -->
   <script>
     function googleTranslateElementInit() {

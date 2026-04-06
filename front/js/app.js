@@ -132,42 +132,51 @@ function mapBusinessFromApi(business, index = 0) {
 }
 
 function initMap(lat, lng, businesses = []) {
-  if (!window.google || !google.maps) return;
+  const mapEl = document.getElementById('map');
+  if (!mapEl || typeof L === 'undefined') return;
 
-  const center = { lat: lat, lng: lng };
-
-  if (!map) {
-    map = new google.maps.Map(document.getElementById("map"), {
-      center: center,
-      zoom: 15,
-      disableDefaultUI: true
-    });
+  // Si el mapa ya existe, sólo recentrar
+  if (map) {
+    map.setView([lat, lng], 15);
   } else {
-    map.setCenter(center);
+    map = L.map('map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 15);
+
+    // Capa OpenStreetMap — 100% gratuita, sin API Key
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
   }
 
-  // limpiar marcadores
-  businessMarkers.forEach(m => m.setMap(null));
+  // Limpiar marcadores anteriores
+  businessMarkers.forEach(m => m.remove());
   businessMarkers = [];
+  if (userMarker) { userMarker.remove(); userMarker = null; }
 
-  // marcador usuario
-  if (userMarker) userMarker.setMap(null);
-
-  userMarker = new google.maps.Marker({
-    position: center,
-    map: map,
-    title: "Tu ubicación"
+  // Ícono personalizado para el usuario (punto azul)
+  const userIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:14px;height:14px;background:#104578;border:2px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(16,69,120,0.5)"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
   });
 
-  // marcadores negocios
-  businesses.forEach(b => {
-    if (!b.latitude || !b.longitude) return;
+  userMarker = L.marker([lat, lng], { icon: userIcon, title: 'Tu ubicación' }).addTo(map);
 
-    const marker = new google.maps.Marker({
-      position: { lat: b.latitude, lng: b.longitude },
-      map: map,
-      title: b.name
-    });
+  // Ícono personalizado para negocios (insignia dorada)
+  const bizIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:28px;height:28px;background:#FDB913;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:14px">⭐</div>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+
+  // Marcadores de negocios
+  businesses.forEach(b => {
+    if (!Number.isFinite(b.latitude) || !Number.isFinite(b.longitude)) return;
+
+    const marker = L.marker([b.latitude, b.longitude], { icon: bizIcon, title: b.name })
+      .addTo(map)
+      .bindPopup(`<strong>${b.name}</strong><br><small>${b.location || ''}</small>`);
 
     businessMarkers.push(marker);
   });
