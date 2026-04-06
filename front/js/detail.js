@@ -1,43 +1,71 @@
-import { businesses } from "./data.js";
+const API_BASE_URL = "http://localhost:8080/api/v1";
 
 const id = localStorage.getItem("businessId");
-const business = businesses.find(b => b.id == id);
+if (!id) window.location.href = "index.html";
 
-if (!business) {
-  // Negocio no encontrado — volver al inicio
-  window.location.href = "index.html";
+function fillDetail(business) {
+  const imgEl = document.getElementById("detail-image");
+  const nameEl = document.getElementById("detail-name");
+  const addrEl = document.getElementById("detail-address");
+  const descEl = document.getElementById("detail-description");
+  const badge = document.getElementById("detail-badge");
+  const waEl = document.getElementById("detail-whatsapp");
+  const mapsEl = document.getElementById("detail-maps-btn");
+
+  const hasCoordinates = Number.isFinite(business.latitude) && Number.isFinite(business.longitude);
+  const mapsUrl = hasCoordinates
+    ? `https://www.google.com/maps?q=${business.latitude},${business.longitude}`
+    : "https://maps.google.com";
+
+  if (imgEl) {
+    const fallback = `https://picsum.photos/800/500?random=${Number(id) + 100}`;
+    const firstPhoto = Array.isArray(business.photoUrls) && business.photoUrls.length ? business.photoUrls[0] : fallback;
+    imgEl.src = firstPhoto;
+  }
+
+  if (nameEl) nameEl.textContent = business.name || "Negocio";
+
+  if (addrEl) {
+    addrEl.textContent = hasCoordinates
+      ? `${business.latitude.toFixed(4)}, ${business.longitude.toFixed(4)}`
+      : (business.categoryName || "Ubicación no disponible");
+  }
+
+  if (descEl) {
+    descEl.textContent = business.description || "Este negocio aún no tiene descripción.";
+  }
+
+  if (badge) {
+    if (business.verified) {
+      badge.removeAttribute("hidden");
+    } else {
+      badge.setAttribute("hidden", "");
+    }
+  }
+
+  if (waEl) {
+    if (business.whatsappNumber) {
+      waEl.href = `https://wa.me/${business.whatsappNumber}`;
+    } else {
+      waEl.href = "#";
+      waEl.setAttribute("aria-disabled", "true");
+      waEl.classList.add("is-disabled");
+    }
+  }
+
+  if (mapsEl) mapsEl.href = mapsUrl;
 }
 
-// Hero image
-const imgEl = document.getElementById("detail-image");
-if (imgEl && business.image) imgEl.src = business.image;
-
-// Nombre
-const nameEl = document.getElementById("detail-name");
-if (nameEl) nameEl.textContent = business.name;
-
-// Dirección (opcional en el mock, usa category como fallback)
-const addrEl = document.getElementById("detail-address");
-if (addrEl) addrEl.textContent = business.address || business.category;
-
-// Descripción
-const descEl = document.getElementById("detail-description");
-if (descEl) descEl.textContent = business.description;
-
-// Badge Sello Dorado
-const badge = document.getElementById("detail-badge");
-if (badge) {
-  if (business.verified) {
-    badge.removeAttribute("hidden");
-  } else {
-    badge.setAttribute("hidden", "");
+async function loadBusinessDetail() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/businesses/${encodeURIComponent(id)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const business = await res.json();
+    fillDetail(business);
+  } catch (error) {
+    console.error("[SelloDoradoMX] No se pudo cargar el detalle del negocio", error);
+    window.location.href = "index.html";
   }
 }
 
-// WhatsApp
-const waEl = document.getElementById("detail-whatsapp");
-if (waEl && business.whatsapp) waEl.href = `https://wa.me/${business.whatsapp}`;
-
-// Go! → Maps
-const mapsEl = document.getElementById("detail-maps-btn");
-if (mapsEl && business.maps) mapsEl.href = business.maps;
+loadBusinessDetail();

@@ -1040,6 +1040,104 @@ body {
   text-decoration: underline;
 }
 
+/* ==============================================
+   PROFILE PAGE — Pantalla de perfil
+   ============================================== */
+
+.profile-page {
+  background: var(--color-bg-main);
+  padding-bottom: 84px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+}
+
+.profile-logout-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  border-radius: var(--radius-full);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--color-text-light);
+  cursor: pointer;
+}
+
+.profile-content {
+  padding: 0 var(--spacing-md) var(--spacing-lg);
+}
+
+.profile-title {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  line-height: 1;
+  margin-bottom: var(--spacing-lg);
+}
+
+.profile-user-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #c7efd6;
+  color: #4fa875;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.profile-user-name {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.profile-user-role {
+  margin-top: 4px;
+  color: var(--color-text-light);
+  font-size: 15px;
+}
+
+.profile-panel {
+  background: #edf7f1;
+  border: 1px solid #d6ebde;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.profile-section-title {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.profile-helper-text {
+  font-size: 14px;
+  color: var(--color-text-light);
+  margin-bottom: 10px;
+}
+
+.profile-main-btn {
+  margin-top: 0;
+}
+
+.is-disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 
 /* ==============================================
    DETAIL PAGE — Pantalla de Negocio

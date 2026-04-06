@@ -40,14 +40,14 @@
       <div class="auth-tabs" role="tablist">
         <button
           id="loginTab"
-          class="auth-tab"
+          class="auth-tab auth-tab--active"
           role="tab"
           aria-selected="true"
           onclick="showLogin()"
         >LOGIN</button>
         <button
           id="signupTab"
-          class="auth-tab auth-tab--active"
+          class="auth-tab"
           role="tab"
           aria-selected="false"
           onclick="showSignup()"
@@ -57,8 +57,9 @@
       <h2 class="auth-welcome">Welcome to SelloDoradoMX!</h2>
 
       <!-- ── LOGIN FORM ── -->
-      <form id="loginForm" class="auth-form auth-form--hidden" novalidate>
+      <form id="loginForm" class="auth-form" novalidate>
         <input
+          id="loginEmail"
           class="auth-input"
           type="email"
           placeholder="Email"
@@ -67,6 +68,7 @@
           required
         />
         <input
+          id="loginPassword"
           class="auth-input"
           type="password"
           placeholder="Password"
@@ -93,8 +95,9 @@
       </form>
 
       <!-- ── SIGNUP FORM ── -->
-      <form id="signupForm" class="auth-form" novalidate>
+      <form id="signupForm" class="auth-form auth-form--hidden" novalidate>
         <input
+          id="signupName"
           class="auth-input"
           type="text"
           placeholder="Name"
@@ -103,6 +106,7 @@
           required
         />
         <input
+          id="signupLastname"
           class="auth-input"
           type="text"
           placeholder="Lastname"
@@ -111,6 +115,7 @@
           required
         />
         <input
+          id="signupEmail"
           class="auth-input"
           type="email"
           placeholder="Email"
@@ -119,19 +124,14 @@
           required
         />
         <input
+          id="signupPassword"
           class="auth-input"
           type="password"
           placeholder="Password"
           autocomplete="new-password"
           aria-label="Contraseña"
+          minlength="8"
           required
-        />
-        <input
-          class="auth-input"
-          type="text"
-          placeholder="Business Name"
-          autocomplete="organization"
-          aria-label="Nombre del negocio"
         />
 
         <button type="button" class="btn-primary" onclick="signup()">Create Account</button>
@@ -161,11 +161,68 @@
 
   </div><!-- /.app-container -->
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
+    const API_BASE_URL = 'http://localhost:8080/api/v1';
+    const GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID || localStorage.getItem('googleClientId') || '';
+    let isGoogleInitialized = false;
+
     const loginTab   = document.getElementById('loginTab');
     const signupTab  = document.getElementById('signupTab');
     const loginForm  = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
+
+    function initGoogleIdentity() {
+      if (!window.google || !GOOGLE_CLIENT_ID) return;
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: (response) => {
+          if (response?.credential) {
+            authenticateWithGoogleToken(response.credential);
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+      isGoogleInitialized = true;
+    }
+
+    function saveAuth(authResponse) {
+      const token = authResponse?.accessToken;
+      if (!token) return;
+      localStorage.setItem('token', token);
+      localStorage.setItem('tokenType', authResponse?.tokenType || 'Bearer');
+      if (authResponse?.user) {
+        localStorage.setItem('currentUser', JSON.stringify(authResponse.user));
+      }
+    }
+
+    async function authenticateWithGoogleToken(googleToken) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/users/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ googleToken })
+        });
+
+        if (!res.ok) throw new Error(await parseApiError(res));
+        const data = await res.json();
+        saveAuth(data);
+        window.location.href = 'index.html';
+      } catch (error) {
+        alert(`No se pudo autenticar con Google: ${error.message}`);
+      }
+    }
+
+    async function parseApiError(response) {
+      try {
+        const data = await response.json();
+        if (typeof data === 'string') return data;
+        return data.message || data.error || `HTTP ${response.status}`;
+      } catch {
+        return `HTTP ${response.status}`;
+      }
+    }
 
     function showLogin() {
       loginForm.classList.remove('auth-form--hidden');
@@ -185,20 +242,77 @@
       loginTab.setAttribute('aria-selected', 'false');
     }
 
-    function login() {
-      // TODO: POST /users/auth/login y guardar JWT en localStorage
-      window.location.href = 'index.html';
+    async function login() {
+      const email = document.getElementById('loginEmail')?.value.trim();
+      const password = document.getElementById('loginPassword')?.value;
+
+      if (!email || !password) {
+        alert('Completa email y contraseña.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/users/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) throw new Error(await parseApiError(res));
+        const data = await res.json();
+        saveAuth(data);
+        window.location.href = 'index.html';
+      } catch (error) {
+        alert(`No se pudo iniciar sesión: ${error.message}`);
+      }
     }
 
-    function signup() {
-      // TODO: POST /users/register
-      window.location.href = 'index.html';
+    async function signup() {
+      const name = document.getElementById('signupName')?.value.trim();
+      const lastname = document.getElementById('signupLastname')?.value.trim();
+      const email = document.getElementById('signupEmail')?.value.trim();
+      const password = document.getElementById('signupPassword')?.value;
+
+      if (!name || !lastname || !email || !password) {
+        alert('Completa todos los campos.');
+        return;
+      }
+
+      if (password.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/users/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, lastname, email, password })
+        });
+
+        if (!res.ok) throw new Error(await parseApiError(res));
+
+        alert('Registro exitoso. Ahora inicia sesión.');
+        showLogin();
+        document.getElementById('loginEmail').value = email;
+        document.getElementById('loginPassword').value = password;
+      } catch (error) {
+        alert(`No se pudo registrar: ${error.message}`);
+      }
     }
 
-    function loginWithGoogle() {
-      // TODO: POST /users/auth/google
-      window.location.href = 'index.html';
+    async function loginWithGoogle() {
+      if (isGoogleInitialized && window.google) {
+        window.google.accounts.id.prompt();
+        return;
+      }
+
+      const googleToken = prompt('Pega aquí tu Google ID token (credential):');
+      if (!googleToken) return;
+      await authenticateWithGoogleToken(googleToken);
     }
+
+    window.addEventListener('load', initGoogleIdentity);
   </script>
 
 </body>

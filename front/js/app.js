@@ -1,5 +1,7 @@
 // URL base del API local (Spring Boot)
 const API_BASE_URL = 'http://localhost:8080/api/v1';
+const DEFAULT_USER_LAT = 20.6736;
+const DEFAULT_USER_LON = -103.344;
 
 // Mocks de negocios (fallback cuando el backend está apagado)
 const mockBusinesses = [
@@ -92,6 +94,37 @@ const mockNearestBusinesses = [
 let activeCategory = 'all';
 let allBusinesses = [];
 let allNearest = [];
+
+function normalizeCategory(categoryName) {
+  const value = String(categoryName || '').toLowerCase();
+  if (value.includes('gastro') || value.includes('food') || value.includes('comida')) return 'gastronomy';
+  if (value.includes('cult') || value.includes('arte') || value.includes('artesan')) return 'culture';
+  if (value.includes('avent') || value.includes('tour') || value.includes('eco')) return 'adventure';
+  if (value.includes('sport') || value.includes('deporte')) return 'sports';
+  return 'all';
+}
+
+function mapBusinessFromApi(business, index = 0) {
+  const image = Array.isArray(business.photoUrls) && business.photoUrls.length
+    ? business.photoUrls[0]
+    : `https://picsum.photos/400/500?random=${(business.id || index + 1) + 20}`;
+
+  const hasCoordinates = Number.isFinite(business.latitude) && Number.isFinite(business.longitude);
+  const location = hasCoordinates
+    ? `${business.latitude.toFixed(4)}, ${business.longitude.toFixed(4)}`
+    : 'Ubicación disponible';
+
+  return {
+    id: business.id,
+    name: business.name || 'Negocio sin nombre',
+    location,
+    rating: 4.5,
+    category: normalizeCategory(business.categoryName),
+    imageUrl: image,
+    isFavorite: false,
+    hasGoldenSeal: !!business.verified
+  };
+}
 
 /* ── Modal: Inicio de sesión requerido ── */
 function showLoginModal() {
@@ -206,7 +239,8 @@ async function fetchBusinesses() {
       }
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    allBusinesses = await res.json();
+    const data = await res.json();
+    allBusinesses = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
     console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios:', err.message);
     allBusinesses = mockBusinesses;
@@ -219,15 +253,17 @@ async function fetchBusinesses() {
  */
 async function fetchNearestBusinesses(lat, lng) {
   const container = document.getElementById('nearest-grid');
-  let url = `${API_BASE_URL}/businesses/nearest`;
-  if (lat !== undefined && lng !== undefined) url += `?lat=${lat}&lng=${lng}`;
+  const safeLat = lat ?? DEFAULT_USER_LAT;
+  const safeLng = lng ?? DEFAULT_USER_LON;
+  const url = `${API_BASE_URL}/businesses/nearest?userLat=${encodeURIComponent(safeLat)}&userLon=${encodeURIComponent(safeLng)}`;
   try {
     const res = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    allNearest = await res.json();
+    const data = await res.json();
+    allNearest = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
     console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios cercanos:', err.message);
     allNearest = mockNearestBusinesses;
