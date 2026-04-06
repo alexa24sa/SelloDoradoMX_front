@@ -2,6 +2,9 @@
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 const DEFAULT_USER_LAT = 20.6736;
 const DEFAULT_USER_LON = -103.344;
+let map;
+let userMarker;
+let businessMarkers = [];
 
 // Mocks de negocios (fallback cuando el backend está apagado)
 const mockBusinesses = [
@@ -122,8 +125,52 @@ function mapBusinessFromApi(business, index = 0) {
     category: normalizeCategory(business.categoryName),
     imageUrl: image,
     isFavorite: false,
-    hasGoldenSeal: !!business.verified
+    hasGoldenSeal: !!business.verified,
+    latitude: business.latitude,
+    longitude: business.longitude
   };
+}
+
+function initMap(lat, lng, businesses = []) {
+  if (!window.google || !google.maps) return;
+
+  const center = { lat: lat, lng: lng };
+
+  if (!map) {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: center,
+      zoom: 15,
+      disableDefaultUI: true
+    });
+  } else {
+    map.setCenter(center);
+  }
+
+  // limpiar marcadores
+  businessMarkers.forEach(m => m.setMap(null));
+  businessMarkers = [];
+
+  // marcador usuario
+  if (userMarker) userMarker.setMap(null);
+
+  userMarker = new google.maps.Marker({
+    position: center,
+    map: map,
+    title: "Tu ubicación"
+  });
+
+  // marcadores negocios
+  businesses.forEach(b => {
+    if (!b.latitude || !b.longitude) return;
+
+    const marker = new google.maps.Marker({
+      position: { lat: b.latitude, lng: b.longitude },
+      map: map,
+      title: b.name
+    });
+
+    businessMarkers.push(marker);
+  });
 }
 
 /* ── Modal: Inicio de sesión requerido ── */
@@ -269,6 +316,7 @@ async function fetchNearestBusinesses(lat, lng) {
     allNearest = mockNearestBusinesses;
   }
   renderBusinessCards(allNearest, container);
+  initMap(safeLat, safeLng, allNearest);
 }
 
 function loadNearestWithGeo() {

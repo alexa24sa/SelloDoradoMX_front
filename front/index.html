@@ -43,33 +43,14 @@
 
   </div>
 
-  <!-- CATEGORÍAS -->
-  <div class="px-4 flex place-content-between gap-4 overflow-x-auto text-sm mb-4">
 
-    <button class="text-green-600 font-semibold">Top</button>
-    <button>Gastronomy</button>
-    <button>Culture</button>
-    <button>Adventure</button>
-
-  </div>
       </div>
     </header>
 
     <!-- ===== MAPA PLACEHOLDER (Fijo, ocupa la mitad superior) ===== -->
     <!-- TODO: Reemplazar el <img> con un <iframe> de Google Maps cuando tengamos la API Key -->
     <section class="hero-section" aria-label="Mapa de negocios cercanos">
-      <div class="map-container">
-        <img
-          src="https://picsum.photos/800/400?random=77"
-          alt="Vista del mapa de la zona"
-          class="map-image"
-        />
-        <div class="map-pin-overlay" aria-hidden="true">
-          <svg class="map-pin-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#6BB88A"/>
-          </svg>
-        </div>
-      </div>
+      <div id="map" style="width: 100%; height: 100%;"></div>
     </section>
 
     <!-- ===== BOTTOM SHEET PANEL ===== -->
@@ -237,7 +218,11 @@
 
     </div>
   </div><!-- /#login-modal-backdrop -->
-
+  
+  <!-- Implementacion de Google Maps -->
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY">
+  </script>
   <!-- ===== GOOGLE TRANSLATE: Widget gratuito (lado cliente, sin coste de API) ===== -->
   <script>
     function googleTranslateElementInit() {
