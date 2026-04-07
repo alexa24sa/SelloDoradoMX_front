@@ -1765,3 +1765,32 @@ body {
 
 .btn-whatsapp:hover { background-color: #1ebe5d; }
 .btn-whatsapp:active { transform: scale(0.97); }
+
+/* ===============================
+   ESTILOS PARA EL MAPA
+   =============================== */
+
+/* Ocultar panel de instrucciones de routing */
+.leaflet-routing-container {
+  display: none !important;
+}
+
+/* Estilo del popup en el mapa */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px !important;
+}
+
+/* Animación para marcadores */
+.user-marker div,
+.business-marker div {
+  transition: transform 0.2s ease;
+}
+
+.business-marker div:hover {
+  transform: rotate(-45deg) scale(1.2) !important;
+}

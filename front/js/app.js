@@ -14,10 +14,13 @@ const DEFAULT_CATEGORIES = [
 let map;
 let userMarker;
 let businessMarkers = [];
+let routeControl = null; // Control de ruta
 let activeCategory = 'all';
 let allBusinesses = [];
 let allNearest = [];
 let categoryCatalog = [...DEFAULT_CATEGORIES];
+let currentUserLat = DEFAULT_USER_LAT;
+let currentUserLng = DEFAULT_USER_LON;
 
 const mockBusinesses = [
   {
@@ -143,6 +146,7 @@ async function fetchBusinessCategories() {
       DEFAULT_CATEGORIES[0],
       ...data.map((category) => ({
         id: category.id,
+        name: category.name, // Nombre original del backend para peticiones
         slug: getCategorySlug(category.name),
         label: category.name === 'STAYS'
           ? 'Hospedaje'
@@ -167,7 +171,45 @@ async function fetchBusinessCategories() {
   renderCategoryButtons();
 }
 
+// Icono personalizado para el usuario (azul)
+const userIcon = L.divIcon({
+  className: 'user-marker',
+  html: `<div style="
+    background-color: #3B82F6;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  "></div>`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10]
+});
+
+// Icono personalizado para negocios (dorado/naranja)
+const businessIcon = L.divIcon({
+  className: 'business-marker',
+  html: `<div style="
+    background-color: #F59E0B;
+    width: 24px;
+    height: 24px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  "><span style="transform: rotate(45deg); color: white; font-size: 12px; font-weight: bold;">⭐</span></div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 24]
+});
+
 function initMap(lat, lng, businesses = []) {
+  // Guardar coordenadas del usuario para rutas
+  currentUserLat = lat;
+  currentUserLng = lng;
+
   if (!map) {
     map = L.map('map').setView([lat, lng], 15);
 
@@ -178,28 +220,93 @@ function initMap(lat, lng, businesses = []) {
     map.setView([lat, lng], 15);
   }
 
-  // limpiar marcadores
+  // Limpiar marcadores y ruta previa
   businessMarkers.forEach(m => map.removeLayer(m));
   businessMarkers = [];
+  if (routeControl) {
+    map.removeControl(routeControl);
+    routeControl = null;
+  }
 
   if (userMarker) map.removeLayer(userMarker);
 
-  // marcador usuario
-  userMarker = L.marker([lat, lng])
+  // Marcador del usuario (azul)
+  userMarker = L.marker([lat, lng], { icon: userIcon })
     .addTo(map)
-    .bindPopup("Tu ubicación")
+    .bindPopup("<b>Tu ubicación</b>")
     .openPopup();
 
-  // negocios
+  // Marcadores de negocios (dorado)
   businesses.forEach(b => {
     if (!b.latitude || !b.longitude) return;
 
-    const marker = L.marker([b.latitude, b.longitude])
+    const popupContent = `
+      <div style="min-width: 150px;">
+        <b style="font-size: 14px;">${b.name}</b>
+        <p style="margin: 8px 0; font-size: 12px; color: #666;">${b.location}</p>
+        <button onclick="showRouteToBusiness(${b.latitude}, ${b.longitude}, '${b.name.replace(/'/g, "\\'")}')"
+                style="
+                  background: #F59E0B;
+                  color: white;
+                  border: none;
+                  padding: 8px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  width: 100%;
+                  font-size: 12px;
+                  font-weight: bold;
+                ">
+          📍 Cómo llegar
+        </button>
+      </div>
+    `;
+
+    const marker = L.marker([b.latitude, b.longitude], { icon: businessIcon })
       .addTo(map)
-      .bindPopup(`<b>${b.name}</b>`);
+      .bindPopup(popupContent);
 
     businessMarkers.push(marker);
   });
+}
+
+/**
+ * Muestra una ruta desde la ubicación del usuario hasta un negocio
+ */
+function showRouteToBusiness(destLat, destLng, businessName) {
+  // Limpiar ruta previa
+  if (routeControl) {
+    map.removeControl(routeControl);
+  }
+
+  // Crear nueva ruta usando OSRM (gratuito, sin API key)
+  routeControl = L.Routing.control({
+    waypoints: [
+      L.latLng(currentUserLat, currentUserLng),
+      L.latLng(destLat, destLng)
+    ],
+    routeWhileDragging: false,
+    showAlternatives: false,
+    lineOptions: {
+      styles: [{ color: '#F59E0B', opacity: 0.8, weight: 5 }]
+    },
+    createMarker: function() { return null; }, // No crear marcadores adicionales
+    router: L.Routing.osrmv1({
+      serviceUrl: 'https://router.project-osrm.org/route/v1'
+    }),
+    language: 'es',
+    show: false // Ocultar el panel de instrucciones
+  }).addTo(map);
+
+  // Mostrar notificación
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title: 'Ruta calculada',
+      text: `Mostrando ruta hacia "${businessName}"`,
+      icon: 'success',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  }
 }
 
 /* ── Modal: Inicio de sesión requerido ── */
@@ -308,11 +415,17 @@ function applyFilters() {
 }
 
 /**
- * Función que obtiene todos los negocios
+ * Función que obtiene todos los negocios, opcionalmente filtrados por categoría
+ * @param {string|null} categoryName - Nombre de categoría para filtrar (null = todas)
  */
-async function fetchBusinesses() {
+async function fetchBusinesses(categoryName = null) {
   try {
-    const res = await fetch(`${API_BASE_URL}/businesses`, {
+    let url = `${API_BASE_URL}/businesses`;
+    if (categoryName !== null && categoryName !== undefined) {
+      url += `?category=${encodeURIComponent(categoryName)}`;
+    }
+
+    const res = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -321,19 +434,34 @@ async function fetchBusinesses() {
     allBusinesses = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
     console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios:', err.message);
-    allBusinesses = mockBusinesses;
+    // Filtrar mocks por categoría si es necesario
+    if (categoryName !== null) {
+      const catSlug = getCategorySlug(categoryName);
+      allBusinesses = mockBusinesses.filter(b => b.category === catSlug);
+    } else {
+      allBusinesses = mockBusinesses;
+    }
   }
   renderBusinessCards(allBusinesses, document.getElementById('businesses-grid'));
 }
 
 /**
- * Función que obtiene los negocios cercanos
+ * Función que obtiene los negocios cercanos, opcionalmente filtrados por categoría
+ * @param {number} lat - Latitud del usuario
+ * @param {number} lng - Longitud del usuario
+ * @param {number|null} categoryId - ID de categoría para filtrar (null = todas)
  */
-async function fetchNearestBusinesses(lat, lng) {
+async function fetchNearestBusinesses(lat, lng, categoryId = null) {
   const container = document.getElementById('nearest-grid');
   const safeLat = lat ?? DEFAULT_USER_LAT;
   const safeLng = lng ?? DEFAULT_USER_LON;
-  const url = `${API_BASE_URL}/businesses/nearest?userLat=${encodeURIComponent(safeLat)}&userLon=${encodeURIComponent(safeLng)}`;
+
+  // Construir URL con filtro de categoría si se proporciona
+  let url = `${API_BASE_URL}/businesses/nearest?userLat=${encodeURIComponent(safeLat)}&userLon=${encodeURIComponent(safeLng)}`;
+  if (categoryId !== null && categoryId !== undefined) {
+    url += `&businessCat=${encodeURIComponent(categoryId)}`;
+  }
+
   try {
     const res = await fetch(url, {
       method: 'GET',
@@ -344,7 +472,13 @@ async function fetchNearestBusinesses(lat, lng) {
     allNearest = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
     console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios cercanos:', err.message);
-    allNearest = mockNearestBusinesses;
+    // Filtrar mocks por categoría si es necesario
+    if (categoryId !== null) {
+      const catSlug = DEFAULT_CATEGORIES.find(c => c.id === categoryId)?.slug;
+      allNearest = mockNearestBusinesses.filter(b => b.category === catSlug);
+    } else {
+      allNearest = mockNearestBusinesses;
+    }
   }
   renderBusinessCards(allNearest, container);
   initMap(safeLat, safeLng, allNearest);
@@ -369,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchBusinesses();
   loadNearestWithGeo();
 
-  // 2. Filtro de categorías (event delegation)
+  // 2. Filtro de categorías (event delegation) - hace petición al backend y actualiza ambas secciones y el mapa
   const categoriesScroll = document.querySelector('.categories-scroll');
   if (categoriesScroll) {
     categoriesScroll.addEventListener('click', (e) => {
@@ -382,7 +516,24 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('category-btn--active');
       btn.setAttribute('aria-selected', 'true');
       activeCategory = btn.dataset.category;
-      applyFilters();
+
+      // Buscar la categoría seleccionada
+      const categoryObj = categoryCatalog.find(c => c.slug === activeCategory);
+      const categoryId = categoryObj?.id ?? null;
+      const categoryName = categoryObj?.name ?? null;
+
+      // Filtrar sección "SelloDorado" (negocios verificados)
+      fetchBusinesses(categoryName);
+
+      // Filtrar sección "Cerca de ti" y actualizar mapa
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          ({ coords }) => fetchNearestBusinesses(coords.latitude, coords.longitude, categoryId),
+          () => fetchNearestBusinesses(null, null, categoryId)
+        );
+      } else {
+        fetchNearestBusinesses(null, null, categoryId);
+      }
     });
   }
 
