@@ -1,4 +1,5 @@
 const API_BASE_URL = 'http://localhost:8080/api/v1';
+const ui = window.AppUi;
 
 const id = localStorage.getItem('businessId');
 if (!id) window.location.href = 'home.html';
@@ -189,7 +190,7 @@ function mountRatingForm() {
     event.preventDefault();
 
     if (!getToken()) {
-      alert('Inicia sesión para dejar una valoración.');
+      await ui.alert({ title: 'Inicia sesión', text: 'Necesitas iniciar sesión para dejar una valoración.' });
       window.location.href = 'auth.html';
       return;
     }
@@ -197,7 +198,7 @@ function mountRatingForm() {
     const score = Number(document.getElementById('rating-score')?.value || 0);
     const comment = document.getElementById('rating-comment')?.value.trim() || '';
     if (!score) {
-      alert('Selecciona una calificación antes de enviar.');
+      await ui.alert({ title: 'Falta la calificación', text: 'Selecciona una calificación antes de enviar.' });
       return;
     }
 
@@ -220,9 +221,9 @@ function mountRatingForm() {
       const business = await businessRes.json();
       fillDetail(business);
       await loadRatings(business);
-      alert('Tu valoración fue enviada correctamente.');
+      await ui.toast({ title: 'Tu valoración fue enviada correctamente.' });
     } catch (error) {
-      alert(`No se pudo enviar tu valoración: ${error.message}`);
+      await ui.error({ title: 'No se pudo enviar tu valoración', text: error.message });
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Enviar valoración';

@@ -1,20 +1,8 @@
 const API_BASE_URL = 'http://localhost:8080/api/v1';
-const MAX_DOCUMENT_IMAGE_BYTES = 10 * 1024 * 1024;
-const DOCUMENT_TYPES = {
-  IDENTIFICATION: 'IDENTIFICATION',
-  ADDRESS_PROOF: 'ADDRESS_PROOF'
-};
-const REQUEST_STATUS = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
-};
-const CURP_REGEX = /^[A-Z][AEIOUX][A-Z]{2}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/;
 const ui = window.AppUi;
 
 const state = {
   currentUser: null,
-  currentRequest: null,
   categories: [],
   businesses: [],
   editingBusinessId: null
@@ -62,10 +50,6 @@ function humanizeCategory(name) {
 
 function normalizeDigits(value) {
   return String(value || '').replace(/\D/g, '');
-}
-
-function normalizeCurp(value) {
-  return String(value || '').trim().toUpperCase();
 }
 
 function isSessionError(error) {
@@ -123,39 +107,17 @@ async function apiRequest(path, { method = 'GET', body, headers = {}, useJson = 
 }
 
 function setUserUi(user) {
-  const fullName = `${user?.name || ''} ${user?.lastname || ''}`.trim() || 'Usuario';
+  const fullName = `${user?.name || ''} ${user?.lastname || ''}`.trim() || 'Merchant';
   const initials = fullName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0].toUpperCase())
-    .join('') || 'U';
+    .join('') || 'M';
 
-  const nameEl = document.getElementById('profile-name');
-  const roleEl = document.getElementById('profile-role');
-  const avatarEl = document.getElementById('profile-avatar');
-
-  if (nameEl) nameEl.textContent = fullName;
-  if (roleEl) roleEl.textContent = roleToLabel(user?.roleName);
-  if (avatarEl) avatarEl.textContent = initials;
-}
-
-function setStatus(message) {
-  const section = document.getElementById('merchant-status-section');
-  const text = document.getElementById('merchant-status-message');
-  if (!section || !text) return;
-  text.textContent = message;
-  section.hidden = false;
-}
-
-function showSection(id) {
-  const section = document.getElementById(id);
-  if (section) section.hidden = false;
-}
-
-function hideSection(id) {
-  const section = document.getElementById(id);
-  if (section) section.hidden = true;
+  document.getElementById('business-page-name').textContent = fullName;
+  document.getElementById('business-page-role').textContent = roleToLabel(user?.roleName);
+  document.getElementById('business-page-avatar').textContent = initials;
 }
 
 function setButtonLoading(buttonId, loading, idleLabel, loadingLabel) {
@@ -163,62 +125,6 @@ function setButtonLoading(buttonId, loading, idleLabel, loadingLabel) {
   if (!button) return;
   button.disabled = loading;
   button.textContent = loading ? loadingLabel : idleLabel;
-}
-
-function setImagePreview(imageId, emptyId, source) {
-  const image = document.getElementById(imageId);
-  const empty = document.getElementById(emptyId);
-  if (image) {
-    image.src = source;
-    image.hidden = false;
-  }
-  if (empty) empty.hidden = true;
-}
-
-function clearImagePreview(imageId, emptyId) {
-  const image = document.getElementById(imageId);
-  const empty = document.getElementById(emptyId);
-  if (image) {
-    image.hidden = true;
-    image.removeAttribute('src');
-  }
-  if (empty) empty.hidden = false;
-}
-
-function setPreviewFromFile(file, imageId, emptyId) {
-  if (!file) {
-    clearImagePreview(imageId, emptyId);
-    return;
-  }
-  setImagePreview(imageId, emptyId, URL.createObjectURL(file));
-}
-
-function validateDocumentFile(file, label) {
-  if (!file) {
-    throw new Error(`Sube ${label.toLowerCase()} antes de enviar.`);
-  }
-
-  if (file.size > MAX_DOCUMENT_IMAGE_BYTES) {
-    throw new Error(`${label} no debe superar 10MB.`);
-  }
-
-  if (!String(file.type || '').toLowerCase().startsWith('image/')) {
-    throw new Error(`${label} debe ser una imagen.`);
-  }
-}
-
-function validateMerchantForm(data) {
-  if (!data.curp || !data.phone) {
-    throw new Error('Completa los datos solicitados antes de enviar.');
-  }
-
-  if (data.curp.length !== 18 || !CURP_REGEX.test(data.curp)) {
-    throw new Error('La CURP debe tener 18 caracteres válidos.');
-  }
-
-  if (normalizeDigits(data.phone).length !== 10) {
-    throw new Error('El teléfono debe tener 10 dígitos.');
-  }
 }
 
 function collectBusinessPayload() {
@@ -254,23 +160,12 @@ function collectBusinessPayload() {
 }
 
 function resetBusinessForm() {
-  const form = document.getElementById('business-form');
-  if (form) form.reset();
+  document.getElementById('business-form')?.reset();
   state.editingBusinessId = null;
   const cancelBtn = document.getElementById('business-cancel-btn');
   if (cancelBtn) cancelBtn.hidden = true;
   const submitBtn = document.getElementById('business-submit-btn');
   if (submitBtn) submitBtn.textContent = 'Guardar negocio';
-}
-
-function resetRequestFormUi() {
-  document.getElementById('merchant-profile-form')?.reset();
-  clearImagePreview('merchant-id-preview', 'merchant-id-preview-empty');
-  clearImagePreview('merchant-address-proof-preview', 'merchant-address-proof-preview-empty');
-}
-
-function clearSavedDocuments() {
-  return;
 }
 
 function renderBusinessCategoryOptions() {
@@ -334,8 +229,8 @@ function renderMerchantBusinesses() {
       <p>${business.description || 'Sin descripción.'}</p>
       <p>WhatsApp: ${business.whatsappNumber || 'Sin registro'}</p>
       <div class="profile-actions-row">
-        <button type="button" class="modal-btn-secondary business-edit-btn" data-action="edit-business" data-business-id="${business.id}">Editar</button>
-        <button type="button" class="modal-btn-secondary business-delete-btn" data-action="delete-business" data-business-id="${business.id}">Eliminar</button>
+        <button type="button" class="modal-btn-secondary" data-action="edit-business" data-business-id="${business.id}">Editar</button>
+        <button type="button" class="modal-btn-secondary" data-action="delete-business" data-business-id="${business.id}">Eliminar</button>
       </div>
       <div class="detail-stack">
         ${(business.products || []).length
@@ -347,8 +242,8 @@ function renderMerchantBusinesses() {
                 </div>
                 <div class="detail-stack-inline">
                   <span class="detail-pill">$${Number(product.price || 0).toFixed(2)}</span>
-                  <button type="button" class="modal-btn-secondary product-edit-btn" data-action="edit-product" data-business-id="${business.id}" data-product-id="${product.id}">Editar</button>
-                  <button type="button" class="modal-btn-secondary product-delete-btn" data-action="delete-product" data-business-id="${business.id}" data-product-id="${product.id}">Eliminar</button>
+                  <button type="button" class="modal-btn-secondary" data-action="edit-product" data-business-id="${business.id}" data-product-id="${product.id}">Editar</button>
+                  <button type="button" class="modal-btn-secondary" data-action="delete-product" data-business-id="${business.id}" data-product-id="${product.id}">Eliminar</button>
                 </div>
               </article>
             `).join('')
@@ -361,63 +256,6 @@ function renderMerchantBusinesses() {
 
 function getCurrentUser() {
   return apiRequest('/users/me');
-}
-
-async function getMerchantProfileByUserId(userId) {
-  try {
-    return await apiRequest(`/users/${userId}/merchant-profile`);
-  } catch (error) {
-    if (isSessionError(error)) throw error;
-    if (String(error.message || '').toLowerCase().includes('no encontrada') || String(error.message || '').toLowerCase().includes('no encontrado')) {
-      return null;
-    }
-    return null;
-  }
-}
-
-function createMerchantProfile(payload, identificationImage, addressProofImage) {
-  const formData = new FormData();
-  formData.append('curp', payload.curp);
-  formData.append('phone', payload.phone);
-  formData.append('identificationImage', identificationImage);
-  formData.append('addressProofImage', addressProofImage);
-
-  return apiRequest('/users/merchant-profiles', {
-    method: 'POST',
-    body: formData,
-    useJson: false
-  });
-}
-
-function resetRejectedMerchantProfile() {
-  return apiRequest('/users/merchant-profiles/retry', { method: 'DELETE' });
-}
-
-function renderRequestStatus(profile) {
-  state.currentRequest = profile;
-  const status = String(profile?.status || '').toUpperCase();
-  const reasonEl = document.getElementById('merchant-rejection-reason');
-  const retryBtn = document.getElementById('retry-merchant-request-btn');
-  const merchantAccessSection = document.getElementById('merchant-access-section');
-
-  if (merchantAccessSection) {
-    merchantAccessSection.hidden = status !== REQUEST_STATUS.APPROVED;
-  }
-
-  if (status === REQUEST_STATUS.REJECTED) {
-    setStatus('Tu solicitud fue revisada y necesita ajustes antes de volver a enviarla.');
-    reasonEl.textContent = profile?.rejectionReason ? `Motivo registrado: ${profile.rejectionReason}` : '';
-    reasonEl.hidden = !profile?.rejectionReason;
-    retryBtn.hidden = false;
-  } else if (status === REQUEST_STATUS.APPROVED) {
-    setStatus('Tu cuenta ya está autorizada para publicar negocios.');
-    reasonEl.hidden = true;
-    retryBtn.hidden = true;
-  } else {
-    setStatus('Tu solicitud está en revisión. Aquí verás cualquier actualización.');
-    reasonEl.hidden = true;
-    retryBtn.hidden = true;
-  }
 }
 
 function getBusinessCategories() {
@@ -468,7 +306,6 @@ async function hydrateBusinesses() {
 }
 
 async function loadMerchantDashboard() {
-  showSection('merchant-dashboard-section');
   state.categories = await getBusinessCategories();
   renderBusinessCategoryOptions();
   await hydrateBusinesses();
@@ -476,101 +313,10 @@ async function loadMerchantDashboard() {
 
 function mountEvents() {
   document.getElementById('logout-btn')?.addEventListener('click', clearSessionAndGoAuth);
-  document.getElementById('open-business-manager-btn')?.addEventListener('click', () => {
-    window.location.href = 'business.html';
+  document.getElementById('back-to-profile-btn')?.addEventListener('click', () => {
+    window.location.href = 'profile.html';
   });
-
-  document.getElementById('open-merchant-form-btn')?.addEventListener('click', () => {
-    hideSection('merchant-cta-section');
-    showSection('merchant-form-section');
-  });
-
   document.getElementById('business-cancel-btn')?.addEventListener('click', resetBusinessForm);
-
-  const merchantForm = document.getElementById('merchant-profile-form');
-  const curpInput = document.getElementById('merchant-curp');
-  const phoneInput = document.getElementById('merchant-phone');
-  const idImageInput = document.getElementById('merchant-id-image');
-  const addressProofInput = document.getElementById('merchant-address-proof-image');
-
-  curpInput?.addEventListener('input', () => {
-    curpInput.value = normalizeCurp(curpInput.value).slice(0, 18);
-  });
-
-  phoneInput?.addEventListener('input', () => {
-    phoneInput.value = normalizeDigits(phoneInput.value).slice(0, 10);
-  });
-
-  idImageInput?.addEventListener('change', () => {
-    setPreviewFromFile(idImageInput.files?.[0], 'merchant-id-preview', 'merchant-id-preview-empty');
-  });
-
-  addressProofInput?.addEventListener('change', () => {
-    setPreviewFromFile(addressProofInput.files?.[0], 'merchant-address-proof-preview', 'merchant-address-proof-preview-empty');
-  });
-
-  document.getElementById('retry-merchant-request-btn')?.addEventListener('click', async () => {
-    const confirmed = await ui.confirm({
-      title: 'Volver a intentar',
-      text: 'Se limpiará tu solicitud rechazada para que puedas capturar tus datos y documentos nuevamente.',
-      confirmButtonText: 'Sí, volver a intentar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (!confirmed) return;
-
-    try {
-      await resetRejectedMerchantProfile();
-      state.currentRequest = null;
-      hideSection('merchant-status-section');
-      hideSection('merchant-cta-section');
-      hideSection('merchant-access-section');
-      clearSavedDocuments();
-      resetRequestFormUi();
-      showSection('merchant-form-section');
-      await ui.success({ title: 'Listo', text: 'Tu solicitud anterior fue limpiada. Ya puedes capturar la información otra vez.' });
-    } catch (error) {
-      if (isSessionError(error)) {
-        await handleSessionError();
-        return;
-      }
-      await ui.error({ title: 'No se pudo reiniciar la solicitud', text: error.message });
-    }
-  });
-
-  merchantForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const idFile = idImageInput?.files?.[0];
-    const addressProofFile = addressProofInput?.files?.[0];
-    const payload = {
-      curp: normalizeCurp(document.getElementById('merchant-curp')?.value.trim()),
-      phone: normalizeDigits(document.getElementById('merchant-phone')?.value.trim())
-    };
-
-    setButtonLoading('merchant-submit-btn', true, 'Enviar datos', 'Enviando...');
-
-    try {
-      validateMerchantForm(payload);
-      validateDocumentFile(idFile, 'La identificación oficial');
-      validateDocumentFile(addressProofFile, 'El comprobante de domicilio');
-
-      const profile = await createMerchantProfile(payload, idFile, addressProofFile);
-      hideSection('merchant-cta-section');
-      hideSection('merchant-form-section');
-      renderRequestStatus(profile);
-      resetRequestFormUi();
-      await ui.success({ title: 'Solicitud enviada', text: 'Tu información se envió correctamente y ahora está en revisión.' });
-    } catch (error) {
-      if (isSessionError(error)) {
-        await handleSessionError();
-        return;
-      }
-      await ui.error({ title: 'No se pudo enviar tu solicitud', text: error.message });
-    } finally {
-      setButtonLoading('merchant-submit-btn', false, 'Enviar datos', 'Enviando...');
-    }
-  });
 
   document.getElementById('business-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -714,7 +460,7 @@ function mountEvents() {
   });
 }
 
-async function initProfilePage() {
+async function initBusinessPage() {
   if (!getToken()) {
     window.location.href = 'auth.html';
     return;
@@ -733,32 +479,21 @@ async function initProfilePage() {
       return;
     }
 
-    if (user.roleName === 'ROLE_MERCHANT') {
-      hideSection('merchant-cta-section');
-      hideSection('merchant-form-section');
-      showSection('merchant-access-section');
-      renderRequestStatus({ status: REQUEST_STATUS.APPROVED, hasIdentificationImage: false, hasAddressProofImage: false });
+    if (user.roleName !== 'ROLE_MERCHANT') {
+      await ui.alert({ title: 'Acceso restringido', text: 'Primero necesitas tener una cuenta de negocio aprobada.' });
+      window.location.replace('profile.html');
       return;
     }
 
-    const requestProfile = await getMerchantProfileByUserId(user.id);
-    if (requestProfile) {
-      hideSection('merchant-cta-section');
-      hideSection('merchant-form-section');
-      renderRequestStatus(requestProfile);
-      return;
-    }
-
-    hideSection('merchant-access-section');
-    showSection('merchant-cta-section');
+    await loadMerchantDashboard();
   } catch (error) {
-    console.error('[SelloDoradoMX] Error en perfil', error);
+    console.error('[SelloDoradoMX] Error en mis negocios', error);
     if (isSessionError(error)) {
       await handleSessionError();
       return;
     }
-    await ui.error({ title: 'No se pudo cargar tu perfil', text: 'Intenta de nuevo en unos momentos.' });
+    await ui.error({ title: 'No se pudieron cargar tus negocios', text: 'Intenta de nuevo en unos momentos.' });
   }
 }
 
-initProfilePage();
+initBusinessPage();

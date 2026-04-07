@@ -159,9 +159,12 @@
 
   </div><!-- /.app-container -->
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/ui-feedback.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
     const API_BASE_URL = 'http://localhost:8080/api/v1';
+    const ui = window.AppUi;
     let googleClientId = window.GOOGLE_CLIENT_ID || localStorage.getItem('googleClientId') || '';
     let isGoogleInitialized = false;
 
@@ -232,9 +235,10 @@
         if (!res.ok) throw new Error(await parseApiError(res));
         const data = await res.json();
         saveAuth(data);
+        await ui.success({ title: 'Sesión iniciada con Google', text: 'Tu cuenta quedó lista para continuar.' });
         window.location.href = resolvePostAuthRoute(data?.user);
       } catch (error) {
-        alert(`No se pudo autenticar con Google: ${error.message}`);
+        await ui.error({ title: 'No se pudo autenticar con Google', text: error.message });
       }
     }
 
@@ -271,7 +275,7 @@
       const password = document.getElementById('loginPassword')?.value;
 
       if (!email || !password) {
-        alert('Completa email y contraseña.');
+        await ui.alert({ title: 'Faltan datos', text: 'Completa email y contraseña.' });
         return;
       }
 
@@ -285,9 +289,10 @@
         if (!res.ok) throw new Error(await parseApiError(res));
         const data = await res.json();
         saveAuth(data);
+        await ui.success({ title: 'Sesión iniciada', text: 'Tu acceso fue correcto. Vamos a llevarte a tu panel.' });
         window.location.href = resolvePostAuthRoute(data?.user);
       } catch (error) {
-        alert(`No se pudo iniciar sesión: ${error.message}`);
+        await ui.error({ title: 'No se pudo iniciar sesión', text: error.message });
       }
     }
 
@@ -298,12 +303,12 @@
       const password = document.getElementById('signupPassword')?.value;
 
       if (!name || !lastname || !email || !password) {
-        alert('Completa todos los campos.');
+        await ui.alert({ title: 'Faltan datos', text: 'Completa todos los campos.' });
         return;
       }
 
       if (password.length < 8) {
-        alert('La contraseña debe tener al menos 8 caracteres.');
+        await ui.alert({ title: 'Contraseña inválida', text: 'La contraseña debe tener al menos 8 caracteres.' });
         return;
       }
 
@@ -316,12 +321,12 @@
 
         if (!res.ok) throw new Error(await parseApiError(res));
 
-        alert('Registro exitoso. Ahora inicia sesión.');
+        await ui.success({ title: 'Registro exitoso', text: 'Ahora inicia sesión con tu cuenta.' });
         showLogin();
         document.getElementById('loginEmail').value = email;
         document.getElementById('loginPassword').value = password;
       } catch (error) {
-        alert(`No se pudo registrar: ${error.message}`);
+        await ui.error({ title: 'No se pudo registrar', text: error.message });
       }
     }
 
@@ -336,11 +341,22 @@
       }
 
       if (!googleClientId) {
-        alert('No se pudo cargar la configuración de Google. Verifica que el backend esté activo.');
+        await ui.error({ title: 'Google no disponible', text: 'No se pudo cargar la configuración de Google. Verifica que el backend esté activo.' });
         return;
       }
 
-      const googleToken = prompt('Pega aquí tu Google ID token (credential):');
+      const googleToken = await ui.prompt({
+        title: 'Google ID token',
+        text: 'Pega aquí tu credential de Google para continuar.',
+        input: 'textarea',
+        placeholder: 'eyJhbGciOiJSUzI1NiIsImtpZCI6I...',
+        confirmButtonText: 'Usar token',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          if (!value || !value.trim()) return 'Pega un token antes de continuar.';
+          return null;
+        }
+      });
       if (!googleToken) return;
       await authenticateWithGoogleToken(googleToken);
     }

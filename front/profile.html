@@ -32,51 +32,61 @@
       </section>
 
       <section id="merchant-status-section" class="profile-panel" hidden>
-        <h3 class="profile-section-title">Estado de Merchant</h3>
+        <h3 class="profile-section-title">Estado de tu solicitud</h3>
         <p id="merchant-status-message" class="profile-helper-text"></p>
-        <img id="merchant-saved-image" alt="Identificación guardada" hidden style="max-width: 100%; border-radius: 8px; border: 1px solid #d6ebde; margin-top: 10px;" />
+        <p id="merchant-rejection-reason" class="profile-rejection-reason" hidden></p>
+
+        <div class="profile-status-actions">
+          <button id="retry-merchant-request-btn" class="modal-btn-secondary" type="button" hidden>Volver a intentar</button>
+        </div>
       </section>
 
       <section id="merchant-cta-section" class="profile-panel" hidden>
-        <h3 class="profile-section-title">Tienes negocio?</h3>
-        <p class="profile-helper-text">Completa tu Merchant Profile para iniciar el proceso de validación.</p>
-        <button id="open-merchant-form-btn" class="btn-primary profile-main-btn" type="button">Quiero ser Merchant</button>
+        <h3 class="profile-section-title">¿Quieres registrar tu negocio?</h3>
+        <p class="profile-helper-text">Comparte tus datos y documentos para que podamos revisar tu solicitud.</p>
+        <button id="open-merchant-form-btn" class="btn-primary profile-main-btn" type="button">Registrar mi negocio</button>
       </section>
 
       <section id="merchant-form-section" class="profile-panel" hidden>
-        <h3 class="profile-section-title">Merchant Profile</h3>
+        <h3 class="profile-section-title">Documentación para tu registro</h3>
         <form id="merchant-profile-form" class="auth-form" novalidate>
-          <input id="merchant-curp" class="auth-input" type="text" placeholder="CURP" required />
-          <input id="merchant-phone" class="auth-input" type="text" placeholder="Teléfono (10 dígitos)" required />
-          <input id="merchant-store-name" class="auth-input" type="text" placeholder="Nombre del negocio" required />
-          <input id="merchant-id-image" class="auth-input" type="file" accept="image/*" required />
-          <p class="profile-helper-text">Sube una foto de tu identificación oficial. Se aceptan imágenes de hasta 10MB.</p>
-          <img id="merchant-id-preview" alt="Vista previa de identificación" hidden style="max-width: 100%; border-radius: 8px; border: 1px solid #d6ebde;" />
-          <button type="submit" id="merchant-submit-btn" class="btn-primary profile-main-btn">Enviar solicitud</button>
+          <input id="merchant-curp" class="auth-input" type="text" placeholder="CURP" maxlength="18" autocomplete="off" required />
+          <input id="merchant-phone" class="auth-input" type="text" placeholder="Teléfono (10 dígitos)" maxlength="10" inputmode="numeric" required />
+
+          <div class="profile-documents-grid">
+            <article class="profile-document-card profile-document-card--compact">
+              <div>
+                <h4 class="profile-subtitle">Identificación oficial</h4>
+                <p class="profile-helper-text">Sube una foto clara de tu identificación oficial. Máximo 10MB.</p>
+              </div>
+              <input id="merchant-id-image" class="auth-input" type="file" accept="image/*" required />
+              <div class="profile-document-preview">
+                <img id="merchant-id-preview" alt="Vista previa de identificación" hidden />
+                <span id="merchant-id-preview-empty" class="profile-document-placeholder">Vista previa pendiente</span>
+              </div>
+            </article>
+
+            <article class="profile-document-card profile-document-card--compact">
+              <div>
+                <h4 class="profile-subtitle">Comprobante de domicilio</h4>
+                <p class="profile-helper-text">Sube una foto legible de tu comprobante de domicilio. Máximo 10MB.</p>
+              </div>
+              <input id="merchant-address-proof-image" class="auth-input" type="file" accept="image/*" required />
+              <div class="profile-document-preview">
+                <img id="merchant-address-proof-preview" alt="Vista previa del comprobante de domicilio" hidden />
+                <span id="merchant-address-proof-preview-empty" class="profile-document-placeholder">Vista previa pendiente</span>
+              </div>
+            </article>
+          </div>
+
+          <button type="submit" id="merchant-submit-btn" class="btn-primary profile-main-btn">Enviar datos</button>
         </form>
       </section>
 
-      <section id="merchant-dashboard-section" class="profile-panel" hidden>
+      <section id="merchant-access-section" class="profile-panel" hidden>
         <h3 class="profile-section-title">Tus negocios</h3>
-        <p class="profile-helper-text">Crea, actualiza y administra tus negocios y productos desde aquí.</p>
-
-        <form id="business-form" class="auth-form" novalidate>
-          <input id="business-name" class="auth-input" type="text" placeholder="Nombre del negocio" required />
-          <textarea id="business-description" class="auth-input detail-textarea" placeholder="Descripción del negocio" required></textarea>
-          <select id="business-category" class="auth-input" required>
-            <option value="">Selecciona una categoría</option>
-          </select>
-          <input id="business-lat" class="auth-input" type="number" step="any" placeholder="Latitud" required />
-          <input id="business-lng" class="auth-input" type="number" step="any" placeholder="Longitud" required />
-          <input id="business-whatsapp" class="auth-input" type="text" placeholder="WhatsApp (10 dígitos)" required />
-          <textarea id="business-photos" class="auth-input detail-textarea" placeholder="URLs de fotos, una por línea" required></textarea>
-          <div class="profile-actions-row">
-            <button type="submit" id="business-submit-btn" class="btn-primary profile-main-btn">Guardar negocio</button>
-            <button type="button" id="business-cancel-btn" class="modal-btn-secondary" hidden>Cancelar edición</button>
-          </div>
-        </form>
-
-        <div id="merchant-businesses-list" class="detail-stack"></div>
+        <p class="profile-helper-text">La creación y administración de negocios ahora vive en una pantalla separada para mantener tu perfil más limpio.</p>
+        <button id="open-business-manager-btn" class="btn-primary profile-main-btn" type="button">Ir a mis negocios</button>
       </section>
 
     </main>
@@ -92,6 +102,11 @@
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
         </svg>
       </button>
+      <button class="nav-item" aria-label="Mapa" onclick="window.location.href='home.html#map'">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+        </svg>
+      </button>
       <button class="nav-item nav-item--active" aria-label="Perfil">
         <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
@@ -100,6 +115,8 @@
     </nav>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/ui-feedback.js"></script>
   <script src="js/profile.js"></script>
 </body>
 </html>

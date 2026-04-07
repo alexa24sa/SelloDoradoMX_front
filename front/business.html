@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#6BB88A" />
+  <title>Mis negocios - SelloDoradoMX</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-container profile-page">
+    <header class="profile-header">
+      <div class="logo-section">
+        <img src="./assets/insignia.png" alt="Sello Dorado insignia" class="logo-icon" onerror="this.style.display='none'" />
+        <span class="logo-text">
+          <span class="logo-brand">SelloDorado</span><span class="logo-mx">MX</span>
+        </span>
+      </div>
+
+      <div class="profile-header-actions">
+        <button id="back-to-profile-btn" class="modal-btn-secondary" type="button">Volver al perfil</button>
+        <button id="logout-btn" class="profile-logout-btn" type="button">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <main class="profile-content">
+      <h1 class="profile-title">Mis negocios</h1>
+
+      <section class="profile-user-card" aria-label="Información del merchant">
+        <div id="business-page-avatar" class="profile-avatar">M</div>
+        <div class="profile-user-meta">
+          <h2 id="business-page-name" class="profile-user-name">Cargando...</h2>
+          <p id="business-page-role" class="profile-user-role">Cuenta de negocio</p>
+        </div>
+      </section>
+
+      <section class="profile-panel">
+        <h3 class="profile-section-title">Registrar o actualizar negocio</h3>
+        <p class="profile-helper-text">Aquí puedes crear tus negocios, editar los existentes y administrar sus productos.</p>
+
+        <form id="business-form" class="auth-form" novalidate>
+          <input id="business-name" class="auth-input" type="text" placeholder="Nombre del negocio" required />
+          <textarea id="business-description" class="auth-input detail-textarea" placeholder="Descripción del negocio" required></textarea>
+          <select id="business-category" class="auth-input" required>
+            <option value="">Selecciona una categoría</option>
+          </select>
+          <input id="business-lat" class="auth-input" type="number" step="any" placeholder="Latitud" required />
+          <input id="business-lng" class="auth-input" type="number" step="any" placeholder="Longitud" required />
+          <input id="business-whatsapp" class="auth-input" type="text" placeholder="WhatsApp (10 dígitos)" required />
+          <textarea id="business-photos" class="auth-input detail-textarea" placeholder="URLs de fotos, una por línea" required></textarea>
+          <div class="profile-actions-row">
+            <button type="submit" id="business-submit-btn" class="btn-primary profile-main-btn">Guardar negocio</button>
+            <button type="button" id="business-cancel-btn" class="modal-btn-secondary" hidden>Cancelar edición</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="profile-panel">
+        <h3 class="profile-section-title">Negocios registrados</h3>
+        <p class="profile-helper-text">Tus negocios aparecen aquí con su estado actual y los productos asociados.</p>
+        <div id="merchant-businesses-list" class="detail-stack"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button class="nav-item" aria-label="Inicio" onclick="window.location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      </button>
+      <button class="nav-item" aria-label="Favoritos">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </button>
+      <button class="nav-item" aria-label="Mapa" onclick="window.location.href='home.html#map'">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+        </svg>
+      </button>
+      <button class="nav-item nav-item--active" aria-label="Perfil" onclick="window.location.href='profile.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+        </svg>
+      </button>
+    </nav>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/ui-feedback.js"></script>
+  <script src="js/business-manager.js"></script>
+</body>
+</html>
