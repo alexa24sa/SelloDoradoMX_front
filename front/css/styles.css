@@ -827,6 +827,14 @@ body {
   font-size: var(--font-size-sm);
 }
 
+.empty-state.error {
+  color: #d84b4b;
+  background-color: #fff5f0;
+  border: 1px solid #efc4b6;
+  border-radius: var(--radius-md);
+  margin: var(--spacing-md) 0;
+}
+
 
 /* Scroll suave en tarjetas */
 @supports (scroll-behavior: smooth) {

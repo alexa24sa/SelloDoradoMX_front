@@ -22,63 +22,8 @@ let categoryCatalog = [...DEFAULT_CATEGORIES];
 let currentUserLat = DEFAULT_USER_LAT;
 let currentUserLng = DEFAULT_USER_LON;
 
-const mockBusinesses = [
-  {
-    id: 1,
-    name: 'Casa Azul Mundialista',
-    location: 'Roma Norte, CDMX',
-    rating: 4.8,
-    ratingsCount: 18,
-    category: 'stays',
-    imageUrl: 'https://picsum.photos/400/500?random=1',
-    isFavorite: false,
-    hasGoldenSeal: true,
-    latitude: 19.4194,
-    longitude: -99.1601
-  },
-  {
-    id: 2,
-    name: 'Antojitos Doña Lupita',
-    location: 'Centro Histórico, CDMX',
-    rating: 4.6,
-    ratingsCount: 27,
-    category: 'gastronomy',
-    imageUrl: 'https://picsum.photos/400/500?random=2',
-    isFavorite: false,
-    hasGoldenSeal: true,
-    latitude: 19.4328,
-    longitude: -99.1332
-  }
-];
-
-const mockNearestBusinesses = [
-  {
-    id: 3,
-    name: 'Ruta Cultural Coyoacán',
-    location: 'A 1.1 km de ti',
-    rating: 4.7,
-    ratingsCount: 12,
-    category: 'culture',
-    imageUrl: 'https://picsum.photos/400/500?random=3',
-    isFavorite: false,
-    hasGoldenSeal: true,
-    latitude: 19.3494,
-    longitude: -99.1617
-  },
-  {
-    id: 4,
-    name: 'Taller de Artesanías Xochimilco',
-    location: 'A 4.3 km de ti',
-    rating: 4.9,
-    ratingsCount: 9,
-    category: 'crafts',
-    imageUrl: 'https://picsum.photos/400/500?random=4',
-    isFavorite: false,
-    hasGoldenSeal: false,
-    latitude: 19.2577,
-    longitude: -99.1046
-  }
-];
+const mockBusinesses = [];
+const mockNearestBusinesses = [];
 
 function getCategorySlug(categoryName) {
   const value = String(categoryName || '').toUpperCase();
@@ -419,6 +364,7 @@ function applyFilters() {
  * @param {string|null} categoryName - Nombre de categoría para filtrar (null = todas)
  */
 async function fetchBusinesses(categoryName = null) {
+  const container = document.getElementById('businesses-grid');
   try {
     let url = `${API_BASE_URL}/businesses`;
     if (categoryName !== null && categoryName !== undefined) {
@@ -433,16 +379,15 @@ async function fetchBusinesses(categoryName = null) {
     const data = await res.json();
     allBusinesses = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
-    console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios:', err.message);
-    // Filtrar mocks por categoría si es necesario
-    if (categoryName !== null) {
-      const catSlug = getCategorySlug(categoryName);
-      allBusinesses = mockBusinesses.filter(b => b.category === catSlug);
-    } else {
-      allBusinesses = mockBusinesses;
+    console.error('[SelloDoradoMX] Error al obtener negocios:', err.message);
+    allBusinesses = [];
+    if (container) {
+      container.innerHTML = '<p class="empty-state error">No se pudieron cargar los negocios. Verifica tu conexión o intenta más tarde.</p>';
+      container.removeAttribute('aria-busy');
     }
+    return;
   }
-  renderBusinessCards(allBusinesses, document.getElementById('businesses-grid'));
+  renderBusinessCards(allBusinesses, container);
 }
 
 /**
@@ -471,14 +416,15 @@ async function fetchNearestBusinesses(lat, lng, categoryId = null) {
     const data = await res.json();
     allNearest = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
-    console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios cercanos:', err.message);
-    // Filtrar mocks por categoría si es necesario
-    if (categoryId !== null) {
-      const catSlug = DEFAULT_CATEGORIES.find(c => c.id === categoryId)?.slug;
-      allNearest = mockNearestBusinesses.filter(b => b.category === catSlug);
-    } else {
-      allNearest = mockNearestBusinesses;
+    console.error('[SelloDoradoMX] Error al obtener negocios cercanos:', err.message);
+    allNearest = [];
+    if (container) {
+      container.innerHTML = '<p class="empty-state error">No se pudieron cargar los negocios cercanos. Verifica tu conexión o intenta más tarde.</p>';
+      container.removeAttribute('aria-busy');
     }
+    // Inicializar mapa sin marcadores de negocios
+    initMap(safeLat, safeLng, []);
+    return;
   }
   renderBusinessCards(allNearest, container);
   initMap(safeLat, safeLng, allNearest);
