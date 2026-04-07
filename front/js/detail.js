@@ -73,8 +73,9 @@ function renderRatingsSummary(business, ratings) {
   if (!container) return;
 
   const average = Number.isFinite(Number(business.averageRating)) ? Number(business.averageRating) : 0;
-  const count = Number.isFinite(Number(business.ratingsCount)) ? Number(business.ratingsCount) : ratings.length;
-
+  const count = Number.isFinite(Number(business.reviewsCount))
+  ? Number(business.reviewsCount)
+  : ratings.length;
   container.innerHTML = `
     <div class="detail-record detail-record--summary">
       <div>
@@ -227,6 +228,7 @@ function mountRatingForm() {
       form.reset();
       const businessRes = await fetch(`${API_BASE_URL}/businesses/${encodeURIComponent(id)}`);
       const business = await businessRes.json();
+      
       fillDetail(business);
       await loadRatings(business);
       await ui.toast({ title: 'Tu valoración fue enviada correctamente.' });
