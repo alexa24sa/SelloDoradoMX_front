@@ -130,14 +130,23 @@ body {
    =============================== */
 .hero-section {
   position: fixed;
-  top: 64px; /* Default header height roughly */
-  left: 0;
+  top: 64px;
+
+  left: 50%;                  
+  transform: translateX(-50%);
+
   width: 100%;
+  max-width: 480px;           
+
   height: 50vh;
   z-index: 1;
   overflow: hidden;
 }
-
+.hero-section {
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  overflow: hidden;
+}
 .map-container {
   width: 100%;
   height: 100%;
@@ -155,6 +164,7 @@ body {
    BOTTOM SHEET PANEL
    =============================== */
 .bottom-sheet {
+  
   position: relative;
   z-index: 10;
   margin-top: 45vh; 
@@ -163,6 +173,7 @@ body {
   min-height: 60vh;
   padding-bottom: 80px; /* Space for bottom nav */
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  padding-top: 0.1rem;
 }
 
 .drag-handle {
