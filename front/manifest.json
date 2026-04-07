@@ -2,7 +2,7 @@
   "name": "SelloDoradoMX",
   "short_name": "SelloDorado",
   "description": "Conecta turistas con negocios locales durante el Mundial 2026",
-  "start_url": "./index.html",
+  "start_url": "./auth.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

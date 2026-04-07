@@ -1,7 +1,7 @@
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 const id = localStorage.getItem('businessId');
-if (!id) window.location.href = 'index.html';
+if (!id) window.location.href = 'home.html';
 
 function getToken() {
   const token = localStorage.getItem('token');
@@ -239,7 +239,7 @@ async function loadBusinessDetail() {
     await Promise.all([loadProducts(), loadRatings(business)]);
   } catch (error) {
     console.error('[SelloDoradoMX] No se pudo cargar el detalle del negocio', error);
-    window.location.href = 'index.html';
+    window.location.href = 'home.html';
   }
 }
 

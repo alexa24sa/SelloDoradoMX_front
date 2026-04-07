@@ -39,8 +39,8 @@ function clearSessionAndGoAuth() {
 
 function roleToLabel(roleName) {
   if (roleName === 'ROLE_MERCHANT') return 'Merchant';
-  if (roleName === 'ROLE_ADMIN') return 'Admin';
-  return 'Tourist';
+  if (roleName === 'ROLE_ADMIN') return 'Administrador';
+  return 'Cuenta personal';
 }
 
 function humanizeCategory(name) {
@@ -284,56 +284,6 @@ function renderMerchantBusinesses() {
   `).join('');
 }
 
-function renderAdminMerchants(list) {
-  const container = document.getElementById('admin-merchants-list');
-  if (!container) return;
-
-  if (!list.length) {
-    container.innerHTML = '<p class="detail-description-text" style="color: var(--color-text-light);">No hay solicitudes merchant pendientes.</p>';
-    return;
-  }
-
-  container.innerHTML = list.map((merchant) => `
-    <article class="detail-record detail-record--column">
-      <div class="detail-record-header">
-        <div>
-          <strong>${merchant.storeName}</strong>
-          <p>${merchant.curp} · ${merchant.phone}</p>
-        </div>
-        <span class="detail-pill">${merchant.status}</span>
-      </div>
-      <div class="profile-actions-row">
-        <button type="button" class="modal-btn-secondary" data-action="open-merchant-image" data-user-id="${merchant.userId}">Ver identificación</button>
-        <button type="button" class="btn-primary profile-main-btn" data-action="approve-merchant" data-merchant-profile-id="${merchant.id}">Aprobar</button>
-      </div>
-    </article>
-  `).join('');
-}
-
-function renderAdminBusinesses(list) {
-  const container = document.getElementById('admin-businesses-list');
-  if (!container) return;
-
-  if (!list.length) {
-    container.innerHTML = '<p class="detail-description-text" style="color: var(--color-text-light);">No hay negocios pendientes de validación.</p>';
-    return;
-  }
-
-  container.innerHTML = list.map((business) => `
-    <article class="detail-record detail-record--column">
-      <div class="detail-record-header">
-        <div>
-          <strong>${business.name}</strong>
-          <p>${humanizeCategory(business.categoryName)}</p>
-        </div>
-        <span class="detail-pill">Pendiente</span>
-      </div>
-      <p>${business.description || 'Sin descripción.'}</p>
-      <button type="button" class="btn-primary profile-main-btn" data-action="verify-business" data-business-id="${business.id}">Verificar negocio</button>
-    </article>
-  `).join('');
-}
-
 async function getCurrentUser() {
   return apiRequest('/users/me');
 }
@@ -376,21 +326,6 @@ async function loadMerchantImage(userId, imageEl = document.getElementById('merc
   imageEl.hidden = false;
 }
 
-async function openMerchantImage(userId) {
-  const response = await fetch(`${API_BASE_URL}/users/${userId}/merchant-profile/image`, {
-    method: 'GET',
-    headers: getAuthHeaders()
-  });
-
-  if (!response.ok) {
-    throw new Error(await parseApiError(response));
-  }
-
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank', 'noopener,noreferrer');
-}
-
 async function getBusinessCategories() {
   return apiRequest('/business-categories', { headers: {} });
 }
@@ -427,22 +362,6 @@ async function deleteProduct(productId) {
   return apiRequest(`/products/${productId}`, { method: 'DELETE' });
 }
 
-async function getPendingMerchantProfiles() {
-  return apiRequest('/users/merchant-profiles?status=PENDING');
-}
-
-async function approveMerchantProfile(merchantProfileId) {
-  return apiRequest(`/users/merchant-profiles/${merchantProfileId}/approve`, { method: 'PATCH' });
-}
-
-async function getPendingBusinesses() {
-  return apiRequest('/businesses/pending');
-}
-
-async function verifyBusiness(businessId) {
-  return apiRequest(`/businesses/${businessId}/verify`, { method: 'PATCH' });
-}
-
 async function hydrateBusinesses() {
   const businesses = await getBusinessesByUser(state.currentUser.id);
   const hydratedBusinesses = await Promise.all((businesses || []).map(async (business) => {
@@ -459,16 +378,6 @@ async function loadMerchantDashboard() {
   state.categories = await getBusinessCategories();
   renderBusinessCategoryOptions();
   await hydrateBusinesses();
-}
-
-async function loadAdminDashboard() {
-  showSection('admin-dashboard-section');
-  const [merchantProfiles, pendingBusinesses] = await Promise.all([
-    getPendingMerchantProfiles(),
-    getPendingBusinesses()
-  ]);
-  renderAdminMerchants(merchantProfiles || []);
-  renderAdminBusinesses(pendingBusinesses || []);
 }
 
 function mountEvents() {
@@ -661,29 +570,6 @@ function mountEvents() {
     cancelBtn.hidden = true;
     form.querySelector('button[type="submit"]').textContent = 'Guardar producto';
   });
-
-  document.getElementById('admin-dashboard-section')?.addEventListener('click', async (event) => {
-    const action = event.target.dataset.action;
-    if (!action) return;
-
-    try {
-      if (action === 'approve-merchant') {
-        await approveMerchantProfile(Number(event.target.dataset.merchantProfileId));
-        await loadAdminDashboard();
-      }
-
-      if (action === 'verify-business') {
-        await verifyBusiness(Number(event.target.dataset.businessId));
-        await loadAdminDashboard();
-      }
-
-      if (action === 'open-merchant-image') {
-        await openMerchantImage(Number(event.target.dataset.userId));
-      }
-    } catch (error) {
-      alert(`No se pudo completar la acción administrativa: ${error.message}`);
-    }
-  });
 }
 
 async function initProfilePage() {
@@ -701,10 +587,7 @@ async function initProfilePage() {
     setUserUi(user);
 
     if (user.roleName === 'ROLE_ADMIN') {
-      hideSection('merchant-cta-section');
-      hideSection('merchant-form-section');
-      setStatus('Tu cuenta es Admin.');
-      await loadAdminDashboard();
+      window.location.replace('admin.html');
       return;
     }
 

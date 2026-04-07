@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#6BB88A" />
+  <meta name="description" content="SelloDoradoMX - Conecta turistas con negocios locales durante el Mundial 2026" />
+  <title>SelloDoradoMX</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="SelloDorado" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-content">
+        <div class="logo-section">
+          <img
+            src="./assets/insignia.png"
+            alt="Sello Dorado insignia"
+            class="logo-icon"
+            onerror="this.style.display='none'"
+          />
+          <span class="logo-text">
+            <span class="logo-brand">SelloDorado</span><span class="logo-mx">MX</span>
+          </span>
+        </div>
+
+        <div id="google_translate_element" class="translate-widget"></div>
+      </div>
+    </header>
+
+    <section class="hero-section" aria-label="Mapa de negocios cercanos">
+      <div id="map" style="width: 100%; height: 100%;"></div>
+    </section>
+
+    <main class="bottom-sheet">
+      <div class="drag-handle" role="separator" aria-hidden="true"></div>
+
+      <div class="search-bar-wrapper">
+        <div class="search-bar">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <input
+            id="search-input"
+            class="search-input"
+            type="search"
+            placeholder="Buscar negocios, comida, cultura..."
+            autocomplete="off"
+            aria-label="Buscar negocios"
+          />
+        </div>
+      </div>
+
+      <div class="categories-section">
+        <div id="categories-scroll" class="categories-scroll" role="tablist" aria-label="Categorias de negocios">
+          <button class="category-btn category-btn--active" data-category="all" role="tab" aria-selected="true">Top</button>
+        </div>
+      </div>
+
+      <section class="content-section">
+        <div class="section-label">
+          <h2>SelloDorado ⭐</h2>
+        </div>
+        <div id="businesses-grid" class="cards-grid" aria-busy="true" aria-label="Negocios con Sello Dorado"></div>
+      </section>
+
+      <section class="content-section">
+        <div class="section-label">
+          <h2>Cerca de ti 📍</h2>
+        </div>
+        <div id="nearest-grid" class="cards-grid" aria-busy="true" aria-label="Negocios cercanos"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegacion principal">
+      <button class="nav-item nav-item--active" aria-label="Inicio">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      </button>
+
+      <button class="nav-item" aria-label="Favoritos">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </button>
+
+      <button class="nav-item" aria-label="Mapa">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+        </svg>
+      </button>
+
+      <button class="nav-item" aria-label="Perfil" onclick="window.location.href='profile.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+        </svg>
+      </button>
+    </nav>
+  </div>
+
+  <div id="login-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal-card">
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="modal-icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M15.5 4.5c.8-.8 2.1-.8 2.9 0 .8.8.8 2.1 0 2.9L15.5 10.5l-2.9-3.1c-.8-.8-.8-2.1 0-2.9.8-.8 2.1-.8 2.9 0z"
+                fill="#FF4455" stroke="none"/>
+          <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <h2 class="modal-title" id="modal-title">Inicia sesion para guardar</h2>
+      <p class="modal-subtitle">Con una cuenta gratuita puedes:</p>
+
+      <ul class="modal-benefits" aria-label="Beneficios de la cuenta">
+        <li>
+          <span class="benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </span>
+          <span>Guardar tus negocios favoritos</span>
+        </li>
+        <li>
+          <span class="benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </span>
+          <span>Calificar y resenar negocios</span>
+        </li>
+        <li>
+          <span class="benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/>
+            </svg>
+          </span>
+          <span>Leer resenas verificadas</span>
+        </li>
+        <li>
+          <span class="benefit-icon benefit-icon--whatsapp" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.555 4.118 1.528 5.845L.057 23.899a.53.53 0 0 0 .644.678l6.267-1.643A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.021-1.378l-.36-.214-3.724.976.993-3.633-.235-.374A9.783 9.783 0 0 1 2.182 12C2.182 6.572 6.572 2.182 12 2.182c5.428 0 9.818 4.39 9.818 9.818 0 5.427-4.39 9.818-9.818 9.818z"/>
+            </svg>
+          </span>
+          <span>Contacto seguro por WhatsApp</span>
+        </li>
+      </ul>
+
+      <div class="modal-actions">
+        <a href="auth.html" class="modal-btn-primary">Iniciar sesion / Registrate</a>
+        <button class="modal-btn-secondary" id="modal-dismiss-btn">Ahora no</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'es',
+        includedLanguages: 'en,es,fr,de,zh-CN,ja,pt,it,ru,ar',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

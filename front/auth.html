@@ -151,10 +151,8 @@
         </button>
       </form>
 
-      <!-- "¿Eres turista?" enlace del mockup -->
       <p class="auth-tourist-link">
-        Are you a tourist?
-        <a href="index.html" class="auth-tourist-cta">Click here</a>
+        Despues de iniciar sesion podras explorar negocios y experiencias verificadas.
       </p>
 
     </div><!-- /.auth-card -->
@@ -211,6 +209,18 @@
       }
     }
 
+    function getStoredUser() {
+      try {
+        return JSON.parse(localStorage.getItem('currentUser') || 'null');
+      } catch {
+        return null;
+      }
+    }
+
+    function resolvePostAuthRoute(user) {
+      return user?.roleName === 'ROLE_ADMIN' ? 'admin.html' : 'home.html';
+    }
+
     async function authenticateWithGoogleToken(googleToken) {
       try {
         const res = await fetch(`${API_BASE_URL}/users/auth/google`, {
@@ -222,7 +232,7 @@
         if (!res.ok) throw new Error(await parseApiError(res));
         const data = await res.json();
         saveAuth(data);
-        window.location.href = 'index.html';
+        window.location.href = resolvePostAuthRoute(data?.user);
       } catch (error) {
         alert(`No se pudo autenticar con Google: ${error.message}`);
       }
@@ -275,7 +285,7 @@
         if (!res.ok) throw new Error(await parseApiError(res));
         const data = await res.json();
         saveAuth(data);
-        window.location.href = 'index.html';
+        window.location.href = resolvePostAuthRoute(data?.user);
       } catch (error) {
         alert(`No se pudo iniciar sesión: ${error.message}`);
       }
@@ -337,7 +347,7 @@
 
     window.addEventListener('load', async () => {
       if (localStorage.getItem('token')) {
-        window.location.href = 'index.html';
+        window.location.href = resolvePostAuthRoute(getStoredUser());
         return;
       }
 
