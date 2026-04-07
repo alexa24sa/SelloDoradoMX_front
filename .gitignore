@@ -1,0 +1,7 @@
+# Ignorar todo el backend
+hackathon_auxi/
+back/
+
+# Archivos del sistema
+.DS_Store
+.vscode/
