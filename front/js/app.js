@@ -1,110 +1,100 @@
-// URL base del API local (Spring Boot)
 const API_BASE_URL = 'http://localhost:8080/api/v1';
-const DEFAULT_USER_LAT = 20.6736;
-const DEFAULT_USER_LON = -103.344;
+const DEFAULT_USER_LAT = 19.4326;
+const DEFAULT_USER_LON = -99.1332;
+const DEFAULT_CATEGORIES = [
+  { id: null, slug: 'all', label: 'Top' },
+  { id: 1, slug: 'gastronomy', label: 'Gastronomía' },
+  { id: 2, slug: 'stays', label: 'Hospedaje' },
+  { id: 3, slug: 'culture', label: 'Cultura' },
+  { id: 4, slug: 'adventure', label: 'Aventura' },
+  { id: 5, slug: 'experiences', label: 'Experiencias' },
+  { id: 6, slug: 'crafts', label: 'Artesanías' }
+];
+
 let map;
 let userMarker;
 let businessMarkers = [];
+let activeCategory = 'all';
+let allBusinesses = [];
+let allNearest = [];
+let categoryCatalog = [...DEFAULT_CATEGORIES];
 
-// Mocks de negocios (fallback cuando el backend está apagado)
 const mockBusinesses = [
   {
     id: 1,
-    name: 'Fonda "Doña María"',
-    location: 'Centro Histórico',
+    name: 'Casa Azul Mundialista',
+    location: 'Roma Norte, CDMX',
     rating: 4.8,
-    category: 'gastronomy',
+    ratingsCount: 18,
+    category: 'stays',
     imageUrl: 'https://picsum.photos/400/500?random=1',
     isFavorite: false,
-    hasGoldenSeal: true
+    hasGoldenSeal: true,
+    latitude: 19.4194,
+    longitude: -99.1601
   },
   {
     id: 2,
-    name: 'Antojitos "La Pimienta"',
-    location: 'Mercado Libertad',
-    rating: 4.5,
+    name: 'Antojitos Doña Lupita',
+    location: 'Centro Histórico, CDMX',
+    rating: 4.6,
+    ratingsCount: 27,
     category: 'gastronomy',
     imageUrl: 'https://picsum.photos/400/500?random=2',
-    isFavorite: true,
-    hasGoldenSeal: true
-  },
-  {
-    id: 3,
-    name: 'Artesanías "El Papalote"',
-    location: 'Santa Clara / Gante',
-    rating: 4.9,
-    category: 'culture',
-    imageUrl: 'https://picsum.photos/400/500?random=3',
     isFavorite: false,
-    hasGoldenSeal: true
-  },
-  {
-    id: 4,
-    name: 'Juguetes "Salto de Piedra"',
-    location: 'Salvatierra / Alonso',
-    rating: 4.6,
-    category: 'culture',
-    imageUrl: 'https://picsum.photos/400/500?random=4',
-    isFavorite: false,
-    hasGoldenSeal: true
+    hasGoldenSeal: true,
+    latitude: 19.4328,
+    longitude: -99.1332
   }
 ];
 
 const mockNearestBusinesses = [
   {
-    id: 5,
-    name: 'Tacos "El Gordo"',
-    location: 'A 200m de ti',
+    id: 3,
+    name: 'Ruta Cultural Coyoacán',
+    location: 'A 1.1 km de ti',
     rating: 4.7,
-    category: 'gastronomy',
-    imageUrl: 'https://picsum.photos/400/500?random=5',
+    ratingsCount: 12,
+    category: 'culture',
+    imageUrl: 'https://picsum.photos/400/500?random=3',
     isFavorite: false,
-    hasGoldenSeal: false
+    hasGoldenSeal: true,
+    latitude: 19.3494,
+    longitude: -99.1617
   },
   {
-    id: 6,
-    name: 'Centro Cultural Telmex',
-    location: 'A 500m de ti',
+    id: 4,
+    name: 'Taller de Artesanías Xochimilco',
+    location: 'A 4.3 km de ti',
     rating: 4.9,
-    category: 'culture',
-    imageUrl: 'https://picsum.photos/400/500?random=6',
-    isFavorite: true,
-    hasGoldenSeal: false
-  },
-  {
-    id: 7,
-    name: 'Tianguis de Artesanías',
-    location: 'A 800m de ti',
-    rating: 4.3,
-    category: 'culture',
-    imageUrl: 'https://picsum.photos/400/500?random=7',
+    ratingsCount: 9,
+    category: 'crafts',
+    imageUrl: 'https://picsum.photos/400/500?random=4',
     isFavorite: false,
-    hasGoldenSeal: false
-  },
-  {
-    id: 8,
-    name: 'Bar "El Refugio"',
-    location: 'A 1.2km de ti',
-    rating: 4.5,
-    category: 'adventure',
-    imageUrl: 'https://picsum.photos/400/500?random=8',
-    isFavorite: false,
-    hasGoldenSeal: false
+    hasGoldenSeal: false,
+    latitude: 19.2577,
+    longitude: -99.1046
   }
 ];
 
-// Estado global
-let activeCategory = 'all';
-let allBusinesses = [];
-let allNearest = [];
-
-function normalizeCategory(categoryName) {
-  const value = String(categoryName || '').toLowerCase();
-  if (value.includes('gastro') || value.includes('food') || value.includes('comida')) return 'gastronomy';
-  if (value.includes('cult') || value.includes('arte') || value.includes('artesan')) return 'culture';
-  if (value.includes('avent') || value.includes('tour') || value.includes('eco')) return 'adventure';
-  if (value.includes('sport') || value.includes('deporte')) return 'sports';
+function getCategorySlug(categoryName) {
+  const value = String(categoryName || '').toUpperCase();
+  if (value.includes('GASTRO')) return 'gastronomy';
+  if (value.includes('STAY')) return 'stays';
+  if (value.includes('CULT')) return 'culture';
+  if (value.includes('ADVENT')) return 'adventure';
+  if (value.includes('EXPERIENCE')) return 'experiences';
+  if (value.includes('CRAFT')) return 'crafts';
   return 'all';
+}
+
+function formatLocation(business) {
+  const hasCoordinates = Number.isFinite(business.latitude) && Number.isFinite(business.longitude);
+  if (hasCoordinates) {
+    return `${business.latitude.toFixed(4)}, ${business.longitude.toFixed(4)}`;
+  }
+
+  return business.categoryName || 'Ubicación disponible';
 }
 
 function mapBusinessFromApi(business, index = 0) {
@@ -112,23 +102,69 @@ function mapBusinessFromApi(business, index = 0) {
     ? business.photoUrls[0]
     : `https://picsum.photos/400/500?random=${(business.id || index + 1) + 20}`;
 
-  const hasCoordinates = Number.isFinite(business.latitude) && Number.isFinite(business.longitude);
-  const location = hasCoordinates
-    ? `${business.latitude.toFixed(4)}, ${business.longitude.toFixed(4)}`
-    : 'Ubicación disponible';
+  const rating = Number.isFinite(Number(business.averageRating)) ? Number(business.averageRating) : 0;
+  const ratingsCount = Number.isFinite(Number(business.ratingsCount)) ? Number(business.ratingsCount) : 0;
 
   return {
     id: business.id,
     name: business.name || 'Negocio sin nombre',
-    location,
-    rating: 4.5,
-    category: normalizeCategory(business.categoryName),
+    location: formatLocation(business),
+    rating,
+    ratingsCount,
+    category: getCategorySlug(business.categoryName),
     imageUrl: image,
     isFavorite: false,
     hasGoldenSeal: !!business.verified,
     latitude: business.latitude,
     longitude: business.longitude
   };
+}
+
+function renderCategoryButtons() {
+  const container = document.getElementById('categories-scroll');
+  if (!container) return;
+
+  container.innerHTML = categoryCatalog.map((category) => `
+    <button
+      class="category-btn${category.slug === activeCategory ? ' category-btn--active' : ''}"
+      data-category="${category.slug}"
+      role="tab"
+      aria-selected="${category.slug === activeCategory}"
+    >${category.label}</button>
+  `).join('');
+}
+
+async function fetchBusinessCategories() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/business-categories`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    categoryCatalog = [
+      DEFAULT_CATEGORIES[0],
+      ...data.map((category) => ({
+        id: category.id,
+        slug: getCategorySlug(category.name),
+        label: category.name === 'STAYS'
+          ? 'Hospedaje'
+          : category.name === 'EXPERIENCES'
+            ? 'Experiencias'
+            : category.name === 'CRAFTS'
+              ? 'Artesanías'
+              : category.name === 'GASTRONOMY'
+                ? 'Gastronomía'
+                : category.name === 'CULTURE'
+                  ? 'Cultura'
+                  : category.name === 'ADVENTURE'
+                    ? 'Aventura'
+                    : category.name
+      }))
+    ];
+  } catch (error) {
+    console.warn('[SelloDoradoMX] No se pudo cargar el catálogo de categorías:', error.message);
+    categoryCatalog = [...DEFAULT_CATEGORIES];
+  }
+
+  renderCategoryButtons();
 }
 
 function initMap(lat, lng, businesses = []) {
@@ -215,8 +251,12 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function createCardHTML(b) {
-  const filled = Math.round(b.rating);
+  const filled = Math.round(b.rating || 0);
   const stars = '\u2605'.repeat(filled) + '\u2606'.repeat(5 - filled);
+  const ratingLabel = b.ratingsCount
+    ? `${b.rating.toFixed(1)} · ${b.ratingsCount} valoraciones`
+    : 'Nuevo';
+
   return `
     <div class="card" data-id="${b.id}" data-category="${b.category}" role="article">
       <div class="card-image-wrapper">
@@ -248,9 +288,9 @@ function createCardHTML(b) {
           </svg>
           <span>${b.location}</span>
         </div>
-        <div class="card-rating" aria-label="Calificaci\u00f3n ${b.rating} de 5">
+        <div class="card-rating" aria-label="Calificaci\u00f3n ${b.rating || 0} de 5">
           <span class="rating-stars" aria-hidden="true">${stars}</span>
-          <span class="rating-count">${b.rating}</span>
+          <span class="rating-count">${ratingLabel}</span>
         </div>
       </div>
     </div>
@@ -289,10 +329,7 @@ async function fetchBusinesses() {
   try {
     const res = await fetch(`${API_BASE_URL}/businesses`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-        // 'Authorization': `Bearer ${localStorage.getItem('token')}` // Descomentar tras integrar JWT
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -341,6 +378,7 @@ function loadNearestWithGeo() {
 
 // ─── INIT ───────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  fetchBusinessCategories();
 
   // 1. Cargar datos (fallback a mocks si el backend está apagado)
   fetchBusinesses();

@@ -88,13 +88,35 @@
       <p id="detail-description" class="detail-description-text">
         Cargando descripción…
       </p>
+
+      <section class="detail-products">
+        <h3 class="detail-facilities-title">Productos</h3>
+        <div id="detail-products" class="detail-stack">
+          <p class="detail-description-text" style="color: var(--color-text-light);">Cargando productos…</p>
+        </div>
+      </section>
     </div>
 
     <!-- Panel: Ratings (inicialmente oculto) -->
     <div id="panel-ratings" class="detail-tab-panel detail-tab-panel--hidden" role="tabpanel">
-      <p class="detail-description-text" style="color: var(--color-text-light);">
-        Aún no hay reseñas disponibles.
-      </p>
+      <div id="ratings-summary" class="detail-stack"></div>
+
+      <form id="rating-form" class="auth-form" novalidate>
+        <select id="rating-score" class="auth-input" required>
+          <option value="">Calificación</option>
+          <option value="5">5 - Excelente</option>
+          <option value="4">4 - Muy bueno</option>
+          <option value="3">3 - Bueno</option>
+          <option value="2">2 - Regular</option>
+          <option value="1">1 - Malo</option>
+        </select>
+        <textarea id="rating-comment" class="auth-input detail-textarea" placeholder="Comparte tu experiencia"></textarea>
+        <button type="submit" id="rating-submit-btn" class="btn-primary">Enviar valoración</button>
+      </form>
+
+      <div id="ratings-list" class="detail-stack">
+        <p class="detail-description-text" style="color: var(--color-text-light);">Aún no hay reseñas disponibles.</p>
+      </div>
     </div>
 
     <!-- ── Sección Facilities ── -->
