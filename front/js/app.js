@@ -360,16 +360,13 @@ function applyFilters() {
 }
 
 /**
- * Función que obtiene todos los negocios, opcionalmente filtrados por categoría
- * @param {string|null} categoryName - Nombre de categoría para filtrar (null = todas)
+ * Función que obtiene todos los negocios sin filtro de verificación
  */
 async function fetchBusinesses(categoryName = null) {
   const container = document.getElementById('businesses-grid');
   try {
-    let url = `${API_BASE_URL}/businesses`;
-    if (categoryName !== null && categoryName !== undefined) {
-      url += `?category=${encodeURIComponent(categoryName)}`;
-    }
+    // Usar el endpoint /all que trae todos los negocios sin filtrar por verificación
+    let url = `${API_BASE_URL}/businesses/all`;
 
     const res = await fetch(url, {
       method: 'GET',
@@ -449,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchBusinesses();
   loadNearestWithGeo();
 
-  // 2. Filtro de categorías (event delegation) - hace petición al backend y actualiza ambas secciones y el mapa
+  // 2. Filtro de categorías (event delegation) - filtra en cliente
   const categoriesScroll = document.querySelector('.categories-scroll');
   if (categoriesScroll) {
     categoriesScroll.addEventListener('click', (e) => {
@@ -463,22 +460,17 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.setAttribute('aria-selected', 'true');
       activeCategory = btn.dataset.category;
 
-      // Buscar la categoría seleccionada
-      const categoryObj = categoryCatalog.find(c => c.slug === activeCategory);
-      const categoryId = categoryObj?.id ?? null;
-      const categoryName = categoryObj?.name ?? null;
+      // Filtrar en cliente tanto la sección "SelloDorado" como "Cerca de ti"
+      applyFilters();
 
-      // Filtrar sección "SelloDorado" (negocios verificados)
-      fetchBusinesses(categoryName);
-
-      // Filtrar sección "Cerca de ti" y actualizar mapa
+      // Actualizar mapa con todos los negocios cercanos (sin filtro de categoría)
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
-          ({ coords }) => fetchNearestBusinesses(coords.latitude, coords.longitude, categoryId),
-          () => fetchNearestBusinesses(null, null, categoryId)
+          ({ coords }) => fetchNearestBusinesses(coords.latitude, coords.longitude),
+          () => fetchNearestBusinesses()
         );
       } else {
-        fetchNearestBusinesses(null, null, categoryId);
+        fetchNearestBusinesses();
       }
     });
   }
