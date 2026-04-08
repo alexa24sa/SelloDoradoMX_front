@@ -169,9 +169,6 @@
     }
 
     function resolvePostAuthRoute(user) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("tokenType");
-      localStorage.removeItem("currentUser");
       return user?.roleName === 'ROLE_ADMIN' ? 'admin.html' : 'home.html';
     }
 
