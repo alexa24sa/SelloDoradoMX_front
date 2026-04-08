@@ -2004,6 +2004,7 @@ body {
   display: flex;
   gap: 15px;
   justify-content: center;
+  padding-top: 5rem;
 }
 
 .btn-go {
@@ -2280,4 +2281,12 @@ body {
   .qr-reader {
     max-width: 100%;
   }
+}
+/*Seccion de favoritos*/
+.favorites-content{
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+.empty-favorites{
+  margin-top: 1rem;
 }

@@ -322,7 +322,14 @@ function showLoginModal() {
   backdrop.removeAttribute('hidden');
   document.getElementById('modal-close-btn').focus();
 }
+function logout() {
+  // Borra token o sesión
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 
+  // Redirige al login
+  window.location.href = "auth.html";
+}
 function hideLoginModal() {
   const backdrop = document.getElementById('login-modal-backdrop');
   if (backdrop) backdrop.setAttribute('hidden', '');

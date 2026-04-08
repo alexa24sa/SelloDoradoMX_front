@@ -102,8 +102,9 @@ function renderRatingsSummary(business, ratings) {
   if (!container) return;
 
   const average = Number.isFinite(Number(business.averageRating)) ? Number(business.averageRating) : 0;
-  const count = Number.isFinite(Number(business.ratingsCount)) ? Number(business.ratingsCount) : ratings.length;
-
+  const count = Number.isFinite(Number(business.reviewsCount))
+  ? Number(business.reviewsCount)
+  : ratings.length;
   container.innerHTML = `
     <div class="detail-record detail-record--summary">
       <div>
@@ -498,6 +499,7 @@ function mountRatingForm() {
       form.reset();
       const businessRes = await fetch(`${API_BASE_URL}/businesses/${encodeURIComponent(businessId)}`);
       const business = await businessRes.json();
+      
       fillDetail(business);
       await loadRatings(business);
       await ui.toast({ title: 'Tu valoración fue enviada correctamente.' });
@@ -520,6 +522,10 @@ async function loadBusinessDetail() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const business = await res.json();
     fillDetail(business);
+    // Inicializar chat widget con el businessId
+    if (typeof initChatWidget === 'function') {
+      initChatWidget(business.id);
+    }
     await Promise.all([loadProducts(), loadRatings(business), loadProgress()]);
   } catch (error) {
     console.error('[SelloDoradoMX] No se pudo cargar el detalle del negocio', error);
