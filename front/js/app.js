@@ -11,6 +11,7 @@ const DEFAULT_USER_LAT = 19.4326;
 const DEFAULT_USER_LON = -99.1332;
 const DEFAULT_CATEGORIES = [
   { id: null, slug: 'all', label: 'Top' },
+  { id: null, slug: 'todos', label: 'Todos', name: 'ALL' },
   { id: 1, slug: 'gastronomy', label: 'Gastronomía' },
   { id: 2, slug: 'stays', label: 'Hospedaje' },
   { id: 3, slug: 'culture', label: 'Cultura' },
@@ -97,6 +98,7 @@ async function fetchBusinessCategories() {
     const data = await res.json();
     categoryCatalog = [
       DEFAULT_CATEGORIES[0],
+      DEFAULT_CATEGORIES[1],
       ...data.map((category) => ({
         id: category.id,
         name: category.name, // Nombre original del backend para peticiones
@@ -356,7 +358,7 @@ function renderBusinessCards(businesses, container) {
 function applyFilters() {
   const term = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
   const match = (b) => {
-    const byCategory = activeCategory === 'all' || b.category === activeCategory;
+    const byCategory = activeCategory === 'all' || activeCategory === 'todos' || b.category === activeCategory;
     const bySearch = !term
       || b.name.toLowerCase().includes(term)
       || b.location.toLowerCase().includes(term)
@@ -384,13 +386,13 @@ async function fetchBusinesses(categoryName = null) {
     const data = await res.json();
     allBusinesses = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
-    console.error('[SelloDoradoMX] Error al obtener negocios:', err.message);
-    allBusinesses = [];
-    if (container) {
-      container.innerHTML = '<p class="empty-state error">No se pudieron cargar los negocios. Verifica tu conexión o intenta más tarde.</p>';
-      container.removeAttribute('aria-busy');
+    console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios:', err.message);
+    if (categoryName !== null) {
+      const catSlug = getCategorySlug(categoryName);
+      allBusinesses = mockBusinesses.filter(b => b.category === catSlug);
+    } else {
+      allBusinesses = [...mockBusinesses];
     }
-    return;
   }
   renderBusinessCards(allBusinesses, container);
 }
@@ -421,15 +423,13 @@ async function fetchNearestBusinesses(lat, lng, categoryId = null) {
     const data = await res.json();
     allNearest = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
-    console.error('[SelloDoradoMX] Error al obtener negocios cercanos:', err.message);
-    allNearest = [];
-    if (container) {
-      container.innerHTML = '<p class="empty-state error">No se pudieron cargar los negocios cercanos. Verifica tu conexión o intenta más tarde.</p>';
-      container.removeAttribute('aria-busy');
+    console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios cercanos:', err.message);
+    if (categoryId !== null) {
+      const catSlug = DEFAULT_CATEGORIES.find(c => c.id === categoryId)?.slug;
+      allNearest = mockNearestBusinesses.filter(b => b.category === catSlug);
+    } else {
+      allNearest = [...mockNearestBusinesses];
     }
-    // Inicializar mapa sin marcadores de negocios
-    initMap(safeLat, safeLng, []);
-    return;
   }
   renderBusinessCards(allNearest, container);
   initMap(safeLat, safeLng, allNearest);

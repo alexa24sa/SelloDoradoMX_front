@@ -253,4 +253,4 @@ async function loadBusinessDetail() {
 }
 
 mountRatingForm();
-loadBusinessDetail();
+_apiReady.then(() => loadBusinessDetail());
