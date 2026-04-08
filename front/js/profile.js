@@ -406,6 +406,7 @@ function renderRequestStatus(profile) {
   const status = String(profile?.status || '').toUpperCase();
   const reasonEl = document.getElementById('merchant-rejection-reason');
   const retryBtn = document.getElementById('retry-merchant-request-btn');
+  const actionsWrap = retryBtn?.closest('.profile-status-actions');
   const merchantAccessSection = document.getElementById('merchant-access-section');
 
   if (merchantAccessSection) {
@@ -417,14 +418,17 @@ function renderRequestStatus(profile) {
     reasonEl.textContent = profile?.rejectionReason ? `Motivo registrado: ${profile.rejectionReason}` : '';
     reasonEl.hidden = !profile?.rejectionReason;
     retryBtn.hidden = false;
+    if (actionsWrap) actionsWrap.hidden = false;
   } else if (status === REQUEST_STATUS.APPROVED) {
     setStatus('Tu cuenta ya está autorizada para publicar negocios.');
     reasonEl.hidden = true;
     retryBtn.hidden = true;
+    if (actionsWrap) actionsWrap.hidden = true;
   } else {
     setStatus('Tu solicitud está en revisión. Aquí verás cualquier actualización.');
     reasonEl.hidden = true;
     retryBtn.hidden = true;
+    if (actionsWrap) actionsWrap.hidden = true;
   }
 }
 

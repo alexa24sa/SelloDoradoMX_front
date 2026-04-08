@@ -7,6 +7,7 @@
   <title>Detalle – SelloDoradoMX</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/chat-widget.css" />
 </head>
 
 <body>
@@ -88,6 +89,48 @@
       <p id="detail-description" class="detail-description-text">
         Cargando descripción…
       </p>
+
+      <section class="loyalty-section">
+        <div class="merchant-qr-header">
+          <div>
+            <h3 class="detail-facilities-title">Progreso en este negocio</h3>
+            <p class="detail-description-text">Cada lectura válida del QR suma 50%. Dos visitas te suben de nivel.</p>
+          </div>
+          <span class="detail-pill">Nivel 5 máximo</span>
+        </div>
+
+        <article class="detail-record detail-record--column loyalty-card">
+          <div class="loyalty-progress-head">
+            <div>
+              <strong id="progress-level-label">Nivel 1</strong>
+              <p id="progress-copy" class="detail-description-text">Escanea el QR del local para empezar tu progreso.</p>
+            </div>
+            <span id="progress-pill" class="detail-pill">0%</span>
+          </div>
+
+          <div class="loyalty-progress-bar" aria-hidden="true">
+            <span id="progress-bar-fill" class="loyalty-progress-bar-fill"></span>
+          </div>
+
+          <div id="reward-offers-list" class="detail-stack"></div>
+        </article>
+
+        <article class="detail-record detail-record--column loyalty-card">
+          <div class="merchant-qr-header">
+            <div>
+              <h3 class="detail-facilities-title">Escanear QR del local</h3>
+              <p id="scan-access-message" class="detail-description-text">Necesitas iniciar sesión para registrar visitas y desbloquear ofertas.</p>
+            </div>
+          </div>
+
+          <div id="qr-reader" class="qr-reader" hidden></div>
+
+          <div class="profile-actions-row">
+            <button type="button" id="start-qr-scan-btn" class="btn-primary">Escanear con cámara</button>
+            <button type="button" id="stop-qr-scan-btn" class="modal-btn-secondary" hidden>Detener cámara</button>
+          </div>
+        </article>
+      </section>
 
       <section class="detail-products">
         <h3 class="detail-facilities-title">Productos</h3>
@@ -181,24 +224,25 @@
 
   <!-- ===== NAV INFERIOR ===== -->
   <nav class="bottom-nav" aria-label="Navegación principal">
-    <button class="nav-item nav-item--active" aria-label="Inicio" onclick="window.location.href='home.html'">
+    <button class="nav-item" aria-label="Inicio" onclick="window.location.href='home.html'">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
       </svg>
     </button>
-    <button class="nav-item" aria-label="Favoritos">
+    <button class="nav-item" aria-label="Favoritos" onclick="window.location.href='favorites.html'">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-      </svg>
-    </button>
-    <button class="nav-item" aria-label="Mapa">
-      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
       </svg>
     </button>
     <button class="nav-item" aria-label="Perfil" onclick="window.location.href='profile.html'">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+      </svg>
+    </button>
+    <button class="nav-item" aria-label="Cerrar sesión" onclick="logout()">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16 17l5-5-5-5v3H9v4h7v3zM3 5h8V3H3c-1.1 0-2 .9-2 2v14c0
+        1.1.9 2 2 2h8v-2H3V5z"/>
       </svg>
     </button>
   </nav>
@@ -208,6 +252,12 @@
 <script>
   function goBack() {
     window.history.length > 1 ? window.history.back() : (window.location.href = 'home.html');
+  }
+
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "auth.html";
   }
 
   function switchTab(tab) {
@@ -233,8 +283,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/ui-feedback.js"></script>
+<<<<<<< HEAD
+<script src="https://unpkg.com/html5-qrcode" defer></script>
+=======
+<script src="js/chat-widget.js"></script>
+>>>>>>> 20009635dd23142d69ae919c3d87d67080a86315
 <!-- Carga datos desde localStorage + API -->
 <script type="module" src="js/detail.js"></script>
-
+<script src="js/logout.js"></script>
 </body>
 </html>

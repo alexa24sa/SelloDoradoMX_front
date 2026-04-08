@@ -223,6 +223,35 @@ function initMap(lat, lng, businesses = []) {
 
     businessMarkers.push(marker);
   });
+
+  const visiblePoints = [L.latLng(lat, lng), ...businesses
+    .filter((business) => Number.isFinite(business.latitude) && Number.isFinite(business.longitude))
+    .map((business) => L.latLng(business.latitude, business.longitude))];
+  if (visiblePoints.length > 1) {
+    map.fitBounds(L.latLngBounds(visiblePoints), { padding: [36, 36] });
+  }
+}
+
+function requestCurrentPosition() {
+  if (!('geolocation' in navigator)) {
+    return Promise.resolve({ latitude: DEFAULT_USER_LAT, longitude: DEFAULT_USER_LON, isFallback: true });
+  }
+
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        resolve({ latitude: coords.latitude, longitude: coords.longitude, isFallback: false });
+      },
+      () => {
+        resolve({ latitude: DEFAULT_USER_LAT, longitude: DEFAULT_USER_LON, isFallback: true });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0
+      }
+    );
+  });
 }
 
 /**
@@ -241,17 +270,38 @@ function showRouteToBusiness(destLat, destLng, businessName) {
       L.latLng(destLat, destLng)
     ],
     routeWhileDragging: false,
+    addWaypoints: false,
+    draggableWaypoints: false,
     showAlternatives: false,
     lineOptions: {
-      styles: [{ color: '#F59E0B', opacity: 0.8, weight: 5 }]
+      styles: [{ color: '#0f4e84', opacity: 0.95, weight: 7 }, { color: '#F59E0B', opacity: 1, weight: 4 }]
     },
     createMarker: function() { return null; }, // No crear marcadores adicionales
     router: L.Routing.osrmv1({
       serviceUrl: 'https://router.project-osrm.org/route/v1'
     }),
     language: 'es',
-    show: false // Ocultar el panel de instrucciones
+    show: false,
+    fitSelectedRoutes: true
   }).addTo(map);
+
+  routeControl.on('routesfound', (event) => {
+    const route = event.routes?.[0];
+    const bounds = route?.bounds;
+    if (bounds) {
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
+  });
+
+  routeControl.on('routingerror', () => {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'No fue posible trazar la ruta',
+        text: 'Intenta de nuevo cuando tu ubicación esté disponible.',
+        icon: 'warning'
+      });
+    }
+  });
 
   // Mostrar notificación
   if (typeof Swal !== 'undefined') {
@@ -272,7 +322,14 @@ function showLoginModal() {
   backdrop.removeAttribute('hidden');
   document.getElementById('modal-close-btn').focus();
 }
+function logout() {
+  // Borra token o sesión
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 
+  // Redirige al login
+  window.location.href = "auth.html";
+}
 function hideLoginModal() {
   const backdrop = document.getElementById('login-modal-backdrop');
   if (backdrop) backdrop.setAttribute('hidden', '');
@@ -393,8 +450,8 @@ async function fetchBusinesses(categorySlug = null) {
     allBusinesses = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
   } catch (err) {
     console.warn('[SelloDoradoMX] Backend inactivo – usando mock de negocios:', err.message);
-    if (categoryName !== null) {
-      const catSlug = getCategorySlug(categoryName);
+    if (categorySlug !== null) {
+      const catSlug = getCategorySlug(categorySlug);
       allBusinesses = mockBusinesses.filter(b => b.category === catSlug);
     } else {
       allBusinesses = [...mockBusinesses];
@@ -461,15 +518,9 @@ async function fetchNearestBusinesses(lat, lng, categoryId = null) {
   initMap(safeLat, safeLng, allNearest);
 }
 
-function loadNearestWithGeo() {
-  if ('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => fetchNearestBusinesses(coords.latitude, coords.longitude),
-      ()           => fetchNearestBusinesses()
-    );
-  } else {
-    fetchNearestBusinesses();
-  }
+async function loadNearestWithGeo(categoryId = null) {
+  const position = await requestCurrentPosition();
+  await fetchNearestBusinesses(position.latitude, position.longitude, categoryId);
 }
 
 // ─── INIT ───────────────────────────────
@@ -499,14 +550,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       await fetchBusinesses(activeCategory);
 
       // Actualizar mapa con todos los negocios cercanos (sin filtro de categoría)
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          ({ coords }) => fetchNearestBusinesses(coords.latitude, coords.longitude),
-          () => fetchNearestBusinesses()
-        );
-      } else {
-        fetchNearestBusinesses();
-      }
+      const selectedCategory = categoryCatalog.find((category) => category.slug === activeCategory);
+      await loadNearestWithGeo(selectedCategory?.id ?? null);
     });
   }
 
