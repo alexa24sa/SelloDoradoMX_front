@@ -13,7 +13,7 @@
 <body>
 <div class="app-container">
 
-  <!-- ===== HERO IMAGE (≈40% de la pantalla) ===== -->
+  <!-- ===== HERO: CARRUSEL DE IMÁGENES ===== -->
   <div class="detail-hero">
 
     <!-- Botón volver -->
@@ -23,13 +23,14 @@
       </svg>
     </button>
 
-    <!-- Foto principal del negocio -->
-    <img
-      id="detail-image"
-      src="https://picsum.photos/800/500?random=11"
-      alt="Foto del negocio"
-      class="detail-hero-img"
-    />
+    <!-- Carrusel de fotos del negocio -->
+    <div class="hero-carousel" id="hero-carousel">
+      <div class="hero-carousel-track" id="hero-carousel-track"></div>
+      <div class="hero-carousel-dots" id="hero-carousel-dots"></div>
+    </div>
+
+    <!-- Gradiente inferior -->
+    <div class="detail-hero-gradient"></div>
 
     <!-- Badge "Sello Dorado" encima de la foto -->
     <img id="detail-badge" src="./assets/insignia.png" alt="Sello Dorado" class="badge-icon" hidden />
@@ -66,7 +67,82 @@
       <span class="detail-star">★</span>
     </div>
 
-    <!-- Pestañas: Description / Ratings -->
+    <!-- ===== SELLO DORADO – SECCIÓN PREMIUM ===== -->
+    <section id="premium-section" class="premium-section" hidden aria-label="Sello Dorado">
+      <!-- Orla folclórica superior -->
+      <div class="premium-folk-strip" aria-hidden="true"></div>
+      <div class="premium-inner">
+        <!-- Cabecera: insignia + título -->
+        <div class="premium-header">
+          <img src="./assets/insignia.png" alt="Sello Dorado" class="premium-seal-icon" />
+          <div>
+            <p class="premium-title">Negocio con Sello Dorado</p>
+            <p class="premium-subtitle">Emprendimiento mexicano certificado 🇲🇽</p>
+          </div>
+        </div>
+        <!-- Mensaje de impacto -->
+        <p class="premium-message">
+          Al comprar aquí <strong>apoyas a emprendedores mexicanos</strong> y contribuyes
+          al crecimiento de familias en tu comunidad. Cada compra hace la diferencia.
+        </p>
+        <!-- Estadísticas de impacto -->
+        <div class="premium-impact-row" aria-label="Datos de impacto social">
+          <div class="premium-impact-item">
+            <span class="premium-impact-emoji">👨‍👩‍👧</span>
+            <span class="premium-impact-label">Apoya familias mexicanas</span>
+          </div>
+          <div class="premium-impact-item">
+            <span class="premium-impact-emoji">🌽</span>
+            <span class="premium-impact-label">Hecho en México</span>
+          </div>
+          <div class="premium-impact-item">
+            <span class="premium-impact-emoji">🏆</span>
+            <span class="premium-impact-label">Calidad garantizada</span>
+          </div>
+        </div>
+        <!-- Badge Coppel Emprende -->
+        <a
+          href="https://www.fundacioncoppel.org/coppel-emprende/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="coppel-emprende-badge"
+          aria-label="Conoce más sobre Coppel Emprende"
+        >
+          <span class="coppel-badge-icon">🎓</span>
+          <span class="coppel-emprende-badge-text">
+            Capacitado con <strong>Coppel Emprende</strong><br/>
+            <span style="font-size:11px;opacity:0.85;">Ofrecemos las mejores amenidades y servicio para ti</span>
+          </span>
+          <svg class="coppel-emprende-badge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+      <!-- Orla folclórica inferior -->
+      <div class="premium-folk-strip" aria-hidden="true"></div>
+    </section>
+
+    <!-- ===== CTA COPPEL EMPRENDE (solo para dueños de negocio) ===== -->
+    <a
+      id="coppel-cta"
+      href="https://www.fundacioncoppel.org/coppel-emprende/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="coppel-cta"
+      hidden
+      aria-label="Conoce Coppel Emprende para obtener el Sello Dorado"
+    >
+      <span class="coppel-cta-icon">✨</span>
+      <span class="coppel-cta-text">
+        <strong>¿Quieres el Sello Dorado para tu negocio?</strong><br/>
+        Capacítate con Coppel Emprende y certifica tu emprendimiento
+      </span>
+      <svg class="coppel-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+
+    <!-- Pestañas: Descripción / Historia / Reseñas -->
     <div class="detail-tabs" role="tablist">
       <button
         class="detail-tab detail-tab--active"
@@ -74,14 +150,21 @@
         role="tab"
         aria-selected="true"
         onclick="switchTab('desc')"
-      >Description</button>
+      >Descripción</button>
+      <button
+        class="detail-tab"
+        id="tab-historia"
+        role="tab"
+        aria-selected="false"
+        onclick="switchTab('historia')"
+      >Historia</button>
       <button
         class="detail-tab"
         id="tab-ratings"
         role="tab"
         aria-selected="false"
         onclick="switchTab('ratings')"
-      >Ratings</button>
+      >Reseñas</button>
     </div>
 
     <!-- Panel: Descripción -->
@@ -140,7 +223,25 @@
       </section>
     </div>
 
-    <!-- Panel: Ratings (inicialmente oculto) -->
+    <!-- Panel: Historia (inicialmente oculto) -->
+    <div id="panel-historia" class="detail-tab-panel detail-tab-panel--hidden" role="tabpanel">
+      <!-- Mini-carrusel de fotos -->
+      <div class="historia-carousel" id="historia-carousel">
+        <div class="historia-carousel-track" id="historia-carousel-track"></div>
+        <div class="historia-carousel-dots" id="historia-carousel-dots"></div>
+      </div>
+
+      <!-- Orla decorativa -->
+      <div class="historia-folk-divider" aria-hidden="true"></div>
+
+      <!-- Texto de la historia con estilo folclórico -->
+      <div id="historia-body">
+        <span class="historia-quote-mark" aria-hidden="true">"</span>
+        <p id="historia-text" class="historia-text">Cargando historia…</p>
+      </div>
+    </div>
+
+    <!-- Panel: Reseñas (inicialmente oculto) -->
     <div id="panel-ratings" class="detail-tab-panel detail-tab-panel--hidden" role="tabpanel">
       <div id="ratings-summary" class="detail-stack"></div>
 
