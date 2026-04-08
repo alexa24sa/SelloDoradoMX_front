@@ -1,4 +1,62 @@
 let API_BASE_URL = 'http://localhost:8088/api/v1';
+
+/* ── Carrusel genérico ────────────────────────────────────────────── */
+function buildCarousel(trackId, dotsId, photos, fallback) {
+  const track = document.getElementById(trackId);
+  const dotsEl = document.getElementById(dotsId);
+  if (!track) return;
+
+  const images = (Array.isArray(photos) && photos.length) ? photos : [fallback];
+  let current = 0;
+
+  track.innerHTML = images.map(src => `
+    <div class="${trackId.startsWith('hero') ? 'hero-carousel-slide' : 'historia-carousel-slide'}">
+      <img src="${src}" alt="Foto del negocio"
+           class="${trackId.startsWith('hero') ? 'hero-carousel-img' : 'historia-carousel-img'}"
+           onerror="this.src='${fallback}'" />
+    </div>
+  `).join('');
+
+  if (dotsEl && images.length > 1) {
+    dotsEl.innerHTML = images.map((_, i) =>
+      `<button class="cdot${i === 0 ? ' cdot--active' : ''}" aria-label="Foto ${i + 1}"></button>`
+    ).join('');
+
+    dotsEl.querySelectorAll('.cdot').forEach((btn, i) => {
+      btn.addEventListener('click', () => goTo(i));
+    });
+  }
+
+  function goTo(index) {
+    current = (index + images.length) % images.length;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    if (dotsEl) {
+      dotsEl.querySelectorAll('.cdot').forEach((d, i) =>
+        d.classList.toggle('cdot--active', i === current)
+      );
+    }
+  }
+
+  // Soporte táctil para deslizar
+  let startX = 0;
+  const container = track.parentElement;
+  container.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  container.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+  }, { passive: true });
+
+  // Auto-avance solo para el hero
+  if (trackId === 'hero-carousel-track' && images.length > 1) {
+    setInterval(() => goTo(current + 1), 4500);
+  }
+}
+
+/* ── Usuario actual (para detectar si es comerciante) ──────────── */
+function getCurrentUser() {
+  try { return JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch { return null; }
+}
+
 const _apiReady = (async () => {
   for (const port of [8088, 8080]) {
     try {
@@ -259,24 +317,25 @@ function syncScanButtons() {
 function fillDetail(business) {
   pageState.business = business;
 
-  const imgEl = document.getElementById('detail-image');
-  const nameEl = document.getElementById('detail-name');
-  const addrEl = document.getElementById('detail-address');
-  const descEl = document.getElementById('detail-description');
-  const badge = document.getElementById('detail-badge');
-  const waEl = document.getElementById('detail-whatsapp');
-  const mapsEl = document.getElementById('detail-maps-btn');
+  const nameEl  = document.getElementById('detail-name');
+  const addrEl  = document.getElementById('detail-address');
+  const descEl  = document.getElementById('detail-description');
+  const badge   = document.getElementById('detail-badge');
+  const waEl    = document.getElementById('detail-whatsapp');
+  const mapsEl  = document.getElementById('detail-maps-btn');
+  const premEl  = document.getElementById('premium-section');
+  const ctaEl   = document.getElementById('coppel-cta');
 
   const hasCoordinates = Number.isFinite(business.latitude) && Number.isFinite(business.longitude);
   const mapsUrl = hasCoordinates
     ? `https://www.google.com/maps?q=${business.latitude},${business.longitude}`
     : 'https://maps.google.com';
 
-  if (imgEl) {
-    const fallback = `https://picsum.photos/800/500?random=${businessId + 100}`;
-    const firstPhoto = Array.isArray(business.photoUrls) && business.photoUrls.length ? business.photoUrls[0] : fallback;
-    imgEl.src = firstPhoto;
-  }
+  const fallback = `https://picsum.photos/800/500?random=${businessId + 100}`;
+
+  // Inicializar carruseles
+  buildCarousel('hero-carousel-track', 'hero-carousel-dots', business.photoUrls, fallback);
+  buildCarousel('historia-carousel-track', 'historia-carousel-dots', business.photoUrls, fallback);
 
   if (nameEl) nameEl.textContent = business.name || 'Negocio';
 
@@ -290,16 +349,39 @@ function fillDetail(business) {
     descEl.textContent = business.description || 'Este negocio aún no tiene descripción.';
   }
 
+  // Historia: texto folclórico
+  const historiaTextEl = document.getElementById('historia-text');
+  if (historiaTextEl) {
+    if (business.description) {
+      historiaTextEl.textContent = business.description;
+    } else {
+      historiaTextEl.parentElement.innerHTML = '<p class="historia-empty">Este negocio aún no ha compartido su historia.</p>';
+    }
+  }
+
   renderStars(business.averageRating);
   renderProgress(pageState.progress);
   pageState.isFavorite = getFavoriteIdsFromStorage().includes(Number(business.id));
   syncFavoriteButton();
 
+  // Badge Sello Dorado
   if (badge) {
-    if (business.verified) {
-      badge.removeAttribute('hidden');
+    business.verified ? badge.removeAttribute('hidden') : badge.setAttribute('hidden', '');
+  }
+
+  // Sección premium (negocios verificados / con sello)
+  if (premEl) {
+    business.verified ? premEl.removeAttribute('hidden') : premEl.setAttribute('hidden', '');
+  }
+
+  // CTA Coppel Emprende (solo para comerciantes sin sello)
+  if (ctaEl) {
+    const user = getCurrentUser();
+    const isMerchant = user?.roleName === 'ROLE_MERCHANT' || user?.roleName === 'MERCHANT';
+    if (isMerchant && !business.verified) {
+      ctaEl.removeAttribute('hidden');
     } else {
-      badge.setAttribute('hidden', '');
+      ctaEl.setAttribute('hidden', '');
     }
   }
 

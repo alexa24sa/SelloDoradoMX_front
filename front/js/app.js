@@ -239,23 +239,32 @@ const userIcon = L.divIcon({
   iconAnchor: [10, 10]
 });
 
-// Icono personalizado para negocios (dorado/naranja)
-const businessIcon = L.divIcon({
+// Icono personalizado para negocios CON Sello Dorado (insignia.png)
+const goldenSealIcon = L.divIcon({
+  className: 'business-marker',
+  html: `<img src="./assets/insignia.png" style="
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 5px rgba(253,185,19,0.7));
+  " alt="Sello Dorado" />`,
+  iconSize: [36, 36],
+  iconAnchor: [18, 36]
+});
+
+// Icono personalizado para negocios SIN sello (punto azul)
+const regularBusinessIcon = L.divIcon({
   className: 'business-marker',
   html: `<div style="
-    background-color: #F59E0B;
-    width: 24px;
-    height: 24px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    border: 2px solid white;
+    background-color: #3B82F6;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2.5px solid white;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  "><span style="transform: rotate(45deg); color: white; font-size: 12px; font-weight: bold;">⭐</span></div>`,
-  iconSize: [24, 24],
-  iconAnchor: [12, 24]
+  "></div>`,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9]
 });
 
 function initMap(lat, lng, businesses = []) {
@@ -293,28 +302,47 @@ function initMap(lat, lng, businesses = []) {
   businesses.forEach(b => {
     if (!b.latitude || !b.longitude) return;
 
+    const mapsUrl = `https://www.google.com/maps?q=${b.latitude},${b.longitude}`;
     const popupContent = `
-      <div style="min-width: 150px;">
+      <div style="min-width: 160px;">
         <b style="font-size: 14px;">${b.name}</b>
-        <p style="margin: 8px 0; font-size: 12px; color: #666;">${b.location}</p>
-        <button onclick="showRouteToBusiness(${b.latitude}, ${b.longitude}, '${b.name.replace(/'/g, "\\'")}')"
-                style="
-                  background: #F59E0B;
-                  color: white;
-                  border: none;
-                  padding: 8px 12px;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  width: 100%;
-                  font-size: 12px;
-                  font-weight: bold;
-                ">
-          📍 Cómo llegar
-        </button>
+        <p style="margin: 6px 0 10px; font-size: 12px; color: #666;">${b.location}</p>
+        <div style="display:flex; gap:6px;">
+          <button onclick="showRouteToBusiness(${b.latitude}, ${b.longitude}, '${b.name.replace(/'/g, "\\'")}')"
+                  style="
+                    flex:1;
+                    background: #F59E0B;
+                    color: white;
+                    border: none;
+                    padding: 8px 6px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: bold;
+                  ">
+            📍 Trazar ruta
+          </button>
+          <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+             style="
+               flex:1;
+               display:flex;
+               align-items:center;
+               justify-content:center;
+               background: #1A73E8;
+               color: white;
+               border-radius: 6px;
+               padding: 8px 6px;
+               font-size: 12px;
+               font-weight: bold;
+               text-decoration: none;
+             ">
+            🗺️ Maps
+          </a>
+        </div>
       </div>
     `;
 
-    const marker = L.marker([b.latitude, b.longitude], { icon: businessIcon })
+    const marker = L.marker([b.latitude, b.longitude], { icon: b.hasGoldenSeal ? goldenSealIcon : regularBusinessIcon })
       .addTo(map)
       .bindPopup(popupContent);
 
