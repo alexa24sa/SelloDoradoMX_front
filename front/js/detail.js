@@ -71,12 +71,14 @@ const _apiReady = (async () => {
 
 const ui = window.AppUi;
 const businessId = Number(localStorage.getItem('businessId') || 0);
+const FAVORITES_STORAGE_KEY = 'favoriteBusinessIds';
 const pageState = {
   business: null,
   progress: null,
   qrScanner: null,
   scannerRunning: false,
-  submittingScan: false
+  submittingScan: false,
+  isFavorite: false
 };
 
 if (!businessId) window.location.href = 'home.html';
@@ -88,6 +90,56 @@ function getToken() {
 
 function getTokenType() {
   return localStorage.getItem('tokenType') || 'Bearer';
+}
+
+function getFavoriteIdsFromStorage() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || localStorage.getItem('favorites') || '[]');
+    return Array.isArray(parsed)
+      ? parsed.map((id) => Number(id)).filter((id) => Number.isFinite(id))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistFavoriteIds(ids) {
+  const normalized = Array.from(new Set(ids.map((id) => Number(id)).filter((id) => Number.isFinite(id))));
+  localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(normalized));
+  localStorage.setItem('favorites', JSON.stringify(normalized));
+  pageState.isFavorite = normalized.includes(businessId);
+  syncFavoriteButton();
+}
+
+function syncFavoriteButton() {
+  const button = document.getElementById('detail-fav-btn');
+  if (!button) return;
+  button.classList.toggle('liked', pageState.isFavorite);
+  button.setAttribute('aria-pressed', String(pageState.isFavorite));
+  button.setAttribute('aria-label', pageState.isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos');
+}
+
+async function toggleFavorite() {
+  if (!getToken()) {
+    await ui.alert({ title: 'Inicia sesión', text: 'Necesitas iniciar sesión para guardar favoritos.' });
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  const nextState = !pageState.isFavorite;
+  const res = await fetch(`${API_BASE_URL}/favorites/${encodeURIComponent(businessId)}`, {
+    method: nextState ? 'POST' : 'DELETE',
+    headers: { Authorization: `${getTokenType()} ${getToken()}` }
+  });
+
+  if (!res.ok && res.status !== 204) {
+    throw new Error(await parseApiError(res));
+  }
+
+  const currentIds = getFavoriteIdsFromStorage();
+  persistFavoriteIds(nextState
+    ? [...currentIds, businessId]
+    : currentIds.filter((id) => id !== businessId));
 }
 
 function getJsonAuthHeaders() {
@@ -309,6 +361,8 @@ function fillDetail(business) {
 
   renderStars(business.averageRating);
   renderProgress(pageState.progress);
+  pageState.isFavorite = getFavoriteIdsFromStorage().includes(Number(business.id));
+  syncFavoriteButton();
 
   // Badge Sello Dorado
   if (badge) {
@@ -344,6 +398,17 @@ function fillDetail(business) {
   }
 
   if (mapsEl) mapsEl.href = mapsUrl;
+}
+
+function mountFavoriteAction() {
+  document.getElementById('detail-fav-btn')?.addEventListener('click', async () => {
+    try {
+      await toggleFavorite();
+      await ui.toast({ title: pageState.isFavorite ? 'Se agregó a favoritos.' : 'Se quitó de favoritos.' });
+    } catch (error) {
+      await ui.error({ title: 'No se pudo actualizar favorito', text: error.message });
+    }
+  });
 }
 
 async function loadProducts() {
@@ -617,4 +682,5 @@ async function loadBusinessDetail() {
 
 mountRatingForm();
 mountScanActions();
+mountFavoriteAction();
 _apiReady.then(() => loadBusinessDetail());
