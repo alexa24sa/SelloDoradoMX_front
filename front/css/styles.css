@@ -1857,6 +1857,7 @@ body {
   display: flex;
   gap: 15px;
   justify-content: center;
+  padding-top: 5rem;
 }
 
 .btn-go {
@@ -1935,4 +1936,12 @@ body {
 
 .business-marker div:hover {
   transform: rotate(-45deg) scale(1.2) !important;
+}
+/*Seccion de favoritos*/
+.favorites-content{
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+.empty-favorites{
+  margin-top: 1rem;
 }
