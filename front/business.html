@@ -7,6 +7,7 @@
   <title>Mis negocios - SelloDoradoMX</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
   <div class="app-container profile-page">
@@ -45,10 +46,58 @@
           <select id="business-category" class="auth-input" required>
             <option value="">Selecciona una categoría</option>
           </select>
-          <input id="business-lat" class="auth-input" type="number" step="any" placeholder="Latitud" required />
-          <input id="business-lng" class="auth-input" type="number" step="any" placeholder="Longitud" required />
+          <input id="business-lat" type="hidden" />
+          <input id="business-lng" type="hidden" />
+          <section class="profile-subpanel" aria-label="Ubicación del negocio">
+            <div class="profile-subpanel-header">
+              <div>
+                <h4 class="profile-subtitle">Ubicación del negocio</h4>
+                <p class="profile-helper-text">Mueve el mapa hasta el punto exacto del local y confirma la ubicación.</p>
+              </div>
+              <button type="button" id="open-location-picker-btn" class="modal-btn-secondary">Seleccionar ubicación</button>
+            </div>
+            <div id="business-location-summary" class="location-summary-card">Todavía no seleccionas la ubicación del negocio.</div>
+          </section>
           <input id="business-whatsapp" class="auth-input" type="text" placeholder="WhatsApp (10 dígitos)" required />
-          <textarea id="business-photos" class="auth-input detail-textarea" placeholder="URLs de fotos, una por línea" required></textarea>
+          <section class="profile-subpanel" aria-label="Fotos del negocio">
+            <div class="profile-subpanel-header">
+              <div>
+                <h4 class="profile-subtitle">Fotos del negocio</h4>
+                <p class="profile-helper-text">Puedes seleccionar varias de una vez o ir agregándolas poco a poco. Máximo 10MB por imagen.</p>
+              </div>
+            </div>
+            <input id="business-photo-files" class="auth-input" type="file" accept="image/*" multiple />
+            <p id="business-photo-selection-summary" class="profile-helper-text">Aún no seleccionas fotos nuevas.</p>
+            <div id="business-photo-preview-list" class="business-photo-preview-list"></div>
+          </section>
+          <section class="profile-subpanel" aria-label="Decisión de ofertas">
+            <div class="profile-subpanel-header">
+              <div>
+                <h4 class="profile-subtitle">¿Deseas agregar ofertas ahora?</h4>
+                <p class="profile-helper-text">Puedes dejarlo para después y configurarlas cuando edites el negocio.</p>
+              </div>
+            </div>
+            <div class="offer-decision-group" id="business-offers-decision-group">
+              <label class="offer-decision-option">
+                <input type="radio" name="business-has-offers" value="no" checked />
+                <span>No por ahora</span>
+              </label>
+              <label class="offer-decision-option">
+                <input type="radio" name="business-has-offers" value="yes" />
+                <span>Sí, quiero configurarlas</span>
+              </label>
+            </div>
+          </section>
+          <section id="reward-offers-section" class="profile-subpanel" aria-label="Ofertas por nivel" hidden>
+            <div class="profile-subpanel-header">
+              <div>
+                <h4 class="profile-subtitle">Ofertas por nivel</h4>
+                <p class="profile-helper-text">Configura las promociones que se desbloquean cuando un turista sube de nivel en tu negocio.</p>
+              </div>
+              <button type="button" id="add-offer-btn" class="modal-btn-secondary">Agregar oferta</button>
+            </div>
+            <div id="reward-offers-form-list" class="detail-stack"></div>
+          </section>
           <div class="profile-actions-row">
             <button type="submit" id="business-submit-btn" class="btn-primary profile-main-btn">Guardar negocio</button>
             <button type="button" id="business-cancel-btn" class="modal-btn-secondary" hidden>Cancelar edición</button>
@@ -87,7 +136,37 @@
     </nav>
   </div>
 
+  <div id="location-picker-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="location-picker-title" hidden>
+    <div class="modal-card modal-card--map">
+      <button class="modal-close-btn" id="location-picker-close-btn" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h2 id="location-picker-title" class="modal-title">Selecciona la ubicación</h2>
+      <p class="modal-subtitle">Arrastra el mapa hasta dejar el pin central justo sobre tu local.</p>
+      <div class="location-picker-shell">
+        <div class="map-pin-overlay" aria-hidden="true">
+          <svg class="map-pin-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#F59E0B" d="M32 4c-11.6 0-21 9.4-21 21 0 15.7 21 35 21 35s21-19.3 21-35c0-11.6-9.4-21-21-21zm0 29.8c-4.9 0-8.8-3.9-8.8-8.8s3.9-8.8 8.8-8.8 8.8 3.9 8.8 8.8-3.9 8.8-8.8 8.8z"/>
+          </svg>
+        </div>
+        <div id="location-picker-map" class="location-picker-map"></div>
+      </div>
+      <div id="location-picker-coordinates" class="location-summary-card"></div>
+      <div class="profile-actions-row">
+        <button type="button" id="location-picker-current-btn" class="modal-btn-secondary">Usar mi ubicación actual</button>
+        <button type="button" id="location-picker-confirm-btn" class="btn-primary">Confirmar ubicación</button>
+        <button type="button" id="location-picker-cancel-btn" class="modal-btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="js/ui-feedback.js"></script>
   <script src="js/business-manager.js"></script>
 </body>

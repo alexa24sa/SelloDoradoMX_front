@@ -3,28 +3,57 @@ const _apiReady = (async () => {
   for (const port of [8088, 8080]) {
     try {
       const r = await fetch(`http://localhost:${port}/api/v1/business-categories`, { signal: AbortSignal.timeout(2000) });
-      if (r.status < 600) { API_BASE_URL = `http://localhost:${port}/api/v1`; return; }
+      if (r.status < 600) {
+        API_BASE_URL = `http://localhost:${port}/api/v1`;
+        return;
+      }
     } catch {}
   }
 })();
-const ui = window.AppUi;
 
-const id = localStorage.getItem('businessId');
-if (!id) window.location.href = 'home.html';
+const ui = window.AppUi;
+const businessId = Number(localStorage.getItem('businessId') || 0);
+const pageState = {
+  business: null,
+  progress: null,
+  qrScanner: null,
+  scannerRunning: false,
+  submittingScan: false
+};
+
+if (!businessId) window.location.href = 'home.html';
 
 function getToken() {
   const token = localStorage.getItem('token');
   return token && token !== 'null' && token !== 'undefined' ? token : null;
 }
 
+function getTokenType() {
+  return localStorage.getItem('tokenType') || 'Bearer';
+}
+
 function getJsonAuthHeaders() {
   const token = getToken();
   return token
     ? {
-        Authorization: `Bearer ${token}`,
+        Authorization: `${getTokenType()} ${token}`,
         'Content-Type': 'application/json'
       }
     : { 'Content-Type': 'application/json' };
+}
+
+async function alertAndRedirectToLogin(title, text) {
+  await ui.alert({ title, text });
+  window.location.href = 'auth.html';
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 async function parseApiError(response) {
@@ -60,8 +89,8 @@ function renderProducts(products) {
   container.innerHTML = products.map((product) => `
     <article class="detail-record">
       <div>
-        <strong>${product.name}</strong>
-        <p>${product.description || 'Sin descripción.'}</p>
+        <strong>${escapeHtml(product.name)}</strong>
+        <p>${escapeHtml(product.description || 'Sin descripción.')}</p>
       </div>
       <span class="detail-pill">$${Number(product.price || 0).toFixed(2)}</span>
     </article>
@@ -98,15 +127,85 @@ function renderRatingsList(ratings) {
   container.innerHTML = ratings.map((rating) => `
     <article class="detail-record detail-record--column">
       <div class="detail-record-header">
-        <strong>${rating.userName || 'Visitante'}</strong>
+        <strong>${escapeHtml(rating.userName || 'Visitante')}</strong>
         <span class="detail-pill">${rating.score}/5</span>
       </div>
-      <p>${rating.comment || 'Sin comentario adicional.'}</p>
+      <p>${escapeHtml(rating.comment || 'Sin comentario adicional.')}</p>
     </article>
   `).join('');
 }
 
+function renderProgress(progress = null) {
+  const levelLabel = document.getElementById('progress-level-label');
+  const progressCopy = document.getElementById('progress-copy');
+  const progressPill = document.getElementById('progress-pill');
+  const progressBarFill = document.getElementById('progress-bar-fill');
+  const rewardOffersList = document.getElementById('reward-offers-list');
+  const scanAccessMessage = document.getElementById('scan-access-message');
+
+  const currentLevel = Number(progress?.currentLevel || 1);
+  const percentage = Number(progress?.percentage || 0);
+  const rewardOffers = Array.isArray(progress?.rewardOffers)
+    ? progress.rewardOffers
+    : Array.isArray(pageState.business?.rewardOffers)
+      ? pageState.business.rewardOffers
+      : [];
+
+  if (levelLabel) levelLabel.textContent = `Nivel ${currentLevel}`;
+  if (progressPill) progressPill.textContent = `${percentage}%`;
+  if (progressBarFill) progressBarFill.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+
+  if (progressCopy) {
+    if (progress?.completed) {
+      progressCopy.textContent = 'Ya alcanzaste el nivel máximo de este negocio.';
+    } else if (getToken()) {
+      progressCopy.textContent = 'Escanea el QR oficial del local para avanzar otro 50%.';
+    } else {
+      progressCopy.textContent = 'Inicia sesión y escanea el QR del local para registrar tus visitas.';
+    }
+  }
+
+  if (scanAccessMessage) {
+    scanAccessMessage.textContent = getToken()
+      ? 'Apunta al QR físico del local o pega su contenido para registrar tu visita.'
+      : 'Necesitas iniciar sesión para registrar visitas y desbloquear ofertas.';
+  }
+
+  if (!rewardOffersList) return;
+  if (!rewardOffers.length) {
+    rewardOffersList.innerHTML = '<p class="detail-description-text">Este negocio todavía no tiene promociones por nivel.</p>';
+    return;
+  }
+
+  rewardOffersList.innerHTML = rewardOffers
+    .sort((left, right) => Number(left.requiredLevel || 0) - Number(right.requiredLevel || 0))
+    .map((offer) => {
+      const requiredLevel = Number(offer.requiredLevel || 1);
+      const unlocked = currentLevel >= requiredLevel;
+      return `
+        <article class="reward-progress-item${unlocked ? '' : ' reward-progress-item--locked'}">
+          <div>
+            <strong>Nivel ${requiredLevel}</strong>
+            <p>${escapeHtml(offer.offerText)}</p>
+          </div>
+          <span class="detail-pill">${unlocked ? 'Desbloqueada' : 'Bloqueada'}</span>
+        </article>
+      `;
+    }).join('');
+}
+
+function syncScanButtons() {
+  const startBtn = document.getElementById('start-qr-scan-btn');
+  const stopBtn = document.getElementById('stop-qr-scan-btn');
+  const shouldDisable = pageState.submittingScan;
+
+  if (startBtn) startBtn.disabled = shouldDisable;
+  if (stopBtn) stopBtn.hidden = !pageState.scannerRunning;
+}
+
 function fillDetail(business) {
+  pageState.business = business;
+
   const imgEl = document.getElementById('detail-image');
   const nameEl = document.getElementById('detail-name');
   const addrEl = document.getElementById('detail-address');
@@ -121,7 +220,7 @@ function fillDetail(business) {
     : 'https://maps.google.com';
 
   if (imgEl) {
-    const fallback = `https://picsum.photos/800/500?random=${Number(id) + 100}`;
+    const fallback = `https://picsum.photos/800/500?random=${businessId + 100}`;
     const firstPhoto = Array.isArray(business.photoUrls) && business.photoUrls.length ? business.photoUrls[0] : fallback;
     imgEl.src = firstPhoto;
   }
@@ -139,6 +238,7 @@ function fillDetail(business) {
   }
 
   renderStars(business.averageRating);
+  renderProgress(pageState.progress);
 
   if (badge) {
     if (business.verified) {
@@ -165,7 +265,7 @@ function fillDetail(business) {
 
 async function loadProducts() {
   try {
-    const res = await fetch(`${API_BASE_URL}/products/business/${encodeURIComponent(id)}`);
+    const res = await fetch(`${API_BASE_URL}/products/business/${encodeURIComponent(businessId)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const products = await res.json();
     renderProducts(Array.isArray(products) ? products : []);
@@ -177,7 +277,7 @@ async function loadProducts() {
 
 async function loadRatings(business) {
   try {
-    const res = await fetch(`${API_BASE_URL}/ratings/business/${encodeURIComponent(id)}`);
+    const res = await fetch(`${API_BASE_URL}/ratings/business/${encodeURIComponent(businessId)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const ratings = await res.json();
     renderRatingsSummary(business, Array.isArray(ratings) ? ratings : []);
@@ -187,6 +287,172 @@ async function loadRatings(business) {
     renderRatingsList([]);
     console.warn('[SelloDoradoMX] No se pudieron cargar las valoraciones del negocio', error);
   }
+}
+
+async function loadProgress() {
+  if (!getToken()) {
+    pageState.progress = null;
+    renderProgress(null);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/business-progress/businesses/${encodeURIComponent(businessId)}/me`, {
+      headers: { Authorization: `${getTokenType()} ${getToken()}` }
+    });
+
+    if (res.status === 401) {
+      pageState.progress = null;
+      renderProgress(null);
+      return;
+    }
+
+    if (!res.ok) {
+      throw new Error(await parseApiError(res));
+    }
+
+    pageState.progress = await res.json();
+    renderProgress(pageState.progress);
+  } catch (error) {
+    console.warn('[SelloDoradoMX] No se pudo cargar el progreso del usuario', error);
+    pageState.progress = null;
+    renderProgress(null);
+  }
+}
+
+function parseQrContent(rawContent) {
+  const value = String(rawContent || '').trim();
+  const parts = value.split('|');
+
+  if (parts.length === 3 && parts[0] === 'SELLADO_QR') {
+    const parsedBusinessId = Number(parts[1]);
+    const qrToken = parts[2]?.trim();
+    if (!Number.isFinite(parsedBusinessId) || !qrToken) {
+      throw new Error('El contenido del QR no es válido.');
+    }
+
+    return { businessId: parsedBusinessId, qrToken };
+  }
+
+  throw new Error('El formato del QR no es válido para esta app.');
+}
+
+async function stopQrScanner() {
+  const reader = document.getElementById('qr-reader');
+  if (!pageState.qrScanner || !pageState.scannerRunning) {
+    if (reader) reader.setAttribute('hidden', '');
+    return;
+  }
+
+  try {
+    await pageState.qrScanner.stop();
+    await pageState.qrScanner.clear();
+  } catch (error) {
+    console.warn('[SelloDoradoMX] No se pudo detener el lector QR', error);
+  } finally {
+    pageState.scannerRunning = false;
+    if (reader) {
+      reader.innerHTML = '';
+      reader.setAttribute('hidden', '');
+    }
+    syncScanButtons();
+  }
+}
+
+async function submitQrVisit(rawContent) {
+  if (!getToken()) {
+    await ui.alert({ title: 'Inicia sesión', text: 'Necesitas iniciar sesión para registrar visitas.' });
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  const payload = parseQrContent(rawContent);
+  pageState.submittingScan = true;
+  syncScanButtons();
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/business-progress/scan`, {
+      method: 'POST',
+      headers: getJsonAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error(await parseApiError(res));
+    }
+
+    pageState.progress = await res.json();
+    renderProgress(pageState.progress);
+    await ui.toast({ title: 'Visita registrada. Tu progreso avanzó correctamente.' });
+
+    if (payload.businessId !== businessId) {
+      localStorage.setItem('businessId', String(payload.businessId));
+      window.location.href = 'detail.html';
+      return;
+    }
+  } finally {
+    pageState.submittingScan = false;
+    syncScanButtons();
+  }
+}
+
+async function startQrScanner() {
+  if (!getToken()) {
+    await ui.alert({ title: 'Inicia sesión', text: 'Necesitas iniciar sesión para escanear el QR del local.' });
+    window.location.href = 'auth.html';
+    return;
+  }
+
+  if (!window.Html5Qrcode) {
+    await ui.error({ title: 'Cámara no disponible', text: 'No fue posible cargar el lector QR en este dispositivo.' });
+    return;
+  }
+
+  const reader = document.getElementById('qr-reader');
+  if (!reader) return;
+
+  if (!pageState.qrScanner) {
+    pageState.qrScanner = new window.Html5Qrcode('qr-reader');
+  }
+
+  reader.removeAttribute('hidden');
+  pageState.scannerRunning = true;
+  syncScanButtons();
+
+  try {
+    await pageState.qrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 220, height: 220 } },
+      async (decodedText) => {
+        await stopQrScanner();
+        try {
+          await submitQrVisit(decodedText);
+        } catch (error) {
+          await ui.error({ title: 'No se pudo registrar la visita', text: error.message });
+        }
+      },
+      () => {}
+    );
+  } catch (error) {
+    pageState.scannerRunning = false;
+    syncScanButtons();
+    reader.setAttribute('hidden', '');
+    await ui.error({ title: 'No se pudo abrir la cámara', text: 'Revisa los permisos del navegador o usa la validación manual.' });
+  }
+}
+
+function mountScanActions() {
+  document.getElementById('start-qr-scan-btn')?.addEventListener('click', async () => {
+    await startQrScanner();
+  });
+
+  document.getElementById('stop-qr-scan-btn')?.addEventListener('click', async () => {
+    await stopQrScanner();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    stopQrScanner();
+  });
 }
 
 function mountRatingForm() {
@@ -217,20 +483,29 @@ function mountRatingForm() {
       const res = await fetch(`${API_BASE_URL}/ratings`, {
         method: 'POST',
         headers: getJsonAuthHeaders(),
-        body: JSON.stringify({ businessId: Number(id), score, comment })
+        body: JSON.stringify({ businessId, score, comment })
       });
+
+      if (res.status === 401) {
+        await alertAndRedirectToLogin('Sesión expirada', 'Inicia sesión de nuevo para enviar tu valoración.');
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(await parseApiError(res));
       }
 
       form.reset();
-      const businessRes = await fetch(`${API_BASE_URL}/businesses/${encodeURIComponent(id)}`);
+      const businessRes = await fetch(`${API_BASE_URL}/businesses/${encodeURIComponent(businessId)}`);
       const business = await businessRes.json();
       fillDetail(business);
       await loadRatings(business);
       await ui.toast({ title: 'Tu valoración fue enviada correctamente.' });
     } catch (error) {
+      if (String(error?.message || '').toLowerCase().includes('no autenticado')) {
+        await alertAndRedirectToLogin('Sesión expirada', 'Inicia sesión de nuevo para enviar tu valoración.');
+        return;
+      }
       await ui.error({ title: 'No se pudo enviar tu valoración', text: error.message });
     } finally {
       submitBtn.disabled = false;
@@ -241,11 +516,11 @@ function mountRatingForm() {
 
 async function loadBusinessDetail() {
   try {
-    const res = await fetch(`${API_BASE_URL}/businesses/${encodeURIComponent(id)}`);
+    const res = await fetch(`${API_BASE_URL}/businesses/${encodeURIComponent(businessId)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const business = await res.json();
     fillDetail(business);
-    await Promise.all([loadProducts(), loadRatings(business)]);
+    await Promise.all([loadProducts(), loadRatings(business), loadProgress()]);
   } catch (error) {
     console.error('[SelloDoradoMX] No se pudo cargar el detalle del negocio', error);
     window.location.href = 'home.html';
@@ -253,4 +528,5 @@ async function loadBusinessDetail() {
 }
 
 mountRatingForm();
+mountScanActions();
 _apiReady.then(() => loadBusinessDetail());

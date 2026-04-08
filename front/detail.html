@@ -89,6 +89,48 @@
         Cargando descripción…
       </p>
 
+      <section class="loyalty-section">
+        <div class="merchant-qr-header">
+          <div>
+            <h3 class="detail-facilities-title">Progreso en este negocio</h3>
+            <p class="detail-description-text">Cada lectura válida del QR suma 50%. Dos visitas te suben de nivel.</p>
+          </div>
+          <span class="detail-pill">Nivel 5 máximo</span>
+        </div>
+
+        <article class="detail-record detail-record--column loyalty-card">
+          <div class="loyalty-progress-head">
+            <div>
+              <strong id="progress-level-label">Nivel 1</strong>
+              <p id="progress-copy" class="detail-description-text">Escanea el QR del local para empezar tu progreso.</p>
+            </div>
+            <span id="progress-pill" class="detail-pill">0%</span>
+          </div>
+
+          <div class="loyalty-progress-bar" aria-hidden="true">
+            <span id="progress-bar-fill" class="loyalty-progress-bar-fill"></span>
+          </div>
+
+          <div id="reward-offers-list" class="detail-stack"></div>
+        </article>
+
+        <article class="detail-record detail-record--column loyalty-card">
+          <div class="merchant-qr-header">
+            <div>
+              <h3 class="detail-facilities-title">Escanear QR del local</h3>
+              <p id="scan-access-message" class="detail-description-text">Necesitas iniciar sesión para registrar visitas y desbloquear ofertas.</p>
+            </div>
+          </div>
+
+          <div id="qr-reader" class="qr-reader" hidden></div>
+
+          <div class="profile-actions-row">
+            <button type="button" id="start-qr-scan-btn" class="btn-primary">Escanear con cámara</button>
+            <button type="button" id="stop-qr-scan-btn" class="modal-btn-secondary" hidden>Detener cámara</button>
+          </div>
+        </article>
+      </section>
+
       <section class="detail-products">
         <h3 class="detail-facilities-title">Productos</h3>
         <div id="detail-products" class="detail-stack">
@@ -233,6 +275,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/ui-feedback.js"></script>
+<script src="https://unpkg.com/html5-qrcode" defer></script>
 <!-- Carga datos desde localStorage + API -->
 <script type="module" src="js/detail.js"></script>
 

@@ -1178,6 +1178,125 @@ body {
   gap: 10px;
 }
 
+.profile-subpanel {
+  padding: 14px;
+  border: 1px solid #d6ebde;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.profile-subpanel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.location-summary-card {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed #bfd9c7;
+  background: #f7fbf8;
+  color: var(--color-text-light);
+  font-size: 14px;
+}
+
+.location-picker-shell {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #d6ebde;
+  background: #dbe9df;
+}
+
+.location-picker-map {
+  width: 100%;
+  min-height: 320px;
+}
+
+.map-pin-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 500;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+
+.map-pin-icon {
+  width: 44px;
+  height: 44px;
+  filter: drop-shadow(0 10px 14px rgba(15, 78, 132, 0.22));
+}
+
+.offer-decision-group {
+  display: grid;
+  gap: 10px;
+}
+
+.offer-decision-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #d6ebde;
+  background: #f7fbf8;
+  cursor: pointer;
+}
+
+.offer-decision-option input {
+  accent-color: var(--color-primary);
+}
+
+.location-picker-user-marker {
+  background: transparent;
+  border: none;
+}
+
+.location-picker-user-dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.18), 0 4px 12px rgba(15, 78, 132, 0.25);
+}
+
+.business-photo-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.business-photo-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(140px, 100%);
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid #d6ebde;
+  background: #fff;
+}
+
+.business-photo-preview-card img {
+  width: 100%;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.business-photo-preview-card p {
+  font-size: 12px;
+  color: var(--color-text-light);
+  word-break: break-word;
+}
+
 .is-disabled {
   pointer-events: none;
   opacity: 0.6;
@@ -1588,6 +1707,34 @@ body {
   resize: vertical;
 }
 
+.product-form-shell {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d6ebde;
+  border-radius: 18px;
+  background: #f7fbf8;
+}
+
+.product-form-shell--hidden {
+  display: none;
+}
+
+.product-photo-preview-list,
+.product-inline-photo-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.product-inline-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #d6ebde;
+  background: #fff;
+}
+
 
 /* ==============================================
    DETAIL PAGE — Pantalla de Negocio
@@ -1935,4 +2082,202 @@ body {
 
 .business-marker div:hover {
   transform: rotate(-45deg) scale(1.2) !important;
+}
+
+.profile-subpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #dceee4;
+  border-radius: 18px;
+  background: #f7fbf8;
+}
+
+.profile-subpanel-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.reward-offer-row,
+.reward-progress-item,
+.reward-offer-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #d6ebde;
+  background: var(--color-white);
+}
+
+.reward-offer-actions,
+.merchant-qr-header,
+.loyalty-progress-head,
+.merchant-qr-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.reward-offer-actions .reward-offer-level {
+  flex: 1 1 150px;
+}
+
+.reward-offer-actions .reward-offer-remove-btn {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.merchant-reward-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.merchant-qr-card,
+.loyalty-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid #dceee4;
+  background: linear-gradient(180deg, #f9fcfa 0%, #eff7f2 100%);
+}
+
+.merchant-qr-preview,
+.qr-reader {
+  width: 100%;
+  max-width: 220px;
+  min-height: 220px;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px dashed #cfe6d8;
+  background: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.merchant-qr-preview img,
+.merchant-qr-preview canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.merchant-qr-copy {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loyalty-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.loyalty-progress-bar {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #d9ebde;
+  overflow: hidden;
+}
+
+.loyalty-progress-bar-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-gold-vivid) 100%);
+  transition: width 0.25s ease;
+}
+
+.reward-progress-item--locked {
+  opacity: 0.74;
+}
+
+.reward-progress-item--locked .detail-pill {
+  background: #edf0ef;
+  color: var(--color-text-light);
+}
+
+.qr-reader {
+  max-width: none;
+}
+
+.qr-reader video {
+  border-radius: 14px;
+}
+
+.location-summary-card {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #d6ebde;
+  background: var(--color-white);
+  color: var(--color-text-dark);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.business-photo-preview-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+.business-photo-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid #d6ebde;
+  background: var(--color-white);
+}
+
+.business-photo-preview-card img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.business-photo-preview-card p {
+  font-size: 12px;
+  color: var(--color-text-light);
+}
+
+.modal-card--map {
+  max-width: 520px;
+  padding-bottom: 28px;
+}
+
+.location-picker-shell {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid #dceee4;
+}
+
+.location-picker-map {
+  width: 100%;
+  height: 360px;
+  background: #eef4ef;
+}
+
+@media (max-width: 480px) {
+  .merchant-qr-preview,
+  .qr-reader {
+    max-width: 100%;
+  }
 }
