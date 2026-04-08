@@ -245,6 +245,12 @@ async function loadBusinessDetail() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const business = await res.json();
     fillDetail(business);
+    
+    // Inicializar chat widget con el businessId
+    if (typeof initChatWidget === 'function') {
+      initChatWidget(business.id);
+    }
+    
     await Promise.all([loadProducts(), loadRatings(business)]);
   } catch (error) {
     console.error('[SelloDoradoMX] No se pudo cargar el detalle del negocio', error);
