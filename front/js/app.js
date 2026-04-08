@@ -31,9 +31,106 @@ let searchBusinesses = []; // Para resultados de búsqueda desde /businesses/all
 let categoryCatalog = [...DEFAULT_CATEGORIES];
 let currentUserLat = DEFAULT_USER_LAT;
 let currentUserLng = DEFAULT_USER_LON;
+const FAVORITES_STORAGE_KEY = 'favoriteBusinessIds';
+let favoriteBusinessIds = new Set();
 
 const mockBusinesses = [];
 const mockNearestBusinesses = [];
+
+function getToken() {
+  const token = localStorage.getItem('token');
+  return token && token !== 'null' && token !== 'undefined' ? token : null;
+}
+
+function getTokenType() {
+  return localStorage.getItem('tokenType') || 'Bearer';
+}
+
+function getFavoriteIdsFromStorage() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || localStorage.getItem('favorites') || '[]');
+    return Array.isArray(parsed)
+      ? parsed.map((id) => Number(id)).filter((id) => Number.isFinite(id))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistFavoriteIds(ids) {
+  const normalized = Array.from(new Set(ids.map((id) => Number(id)).filter((id) => Number.isFinite(id))));
+  favoriteBusinessIds = new Set(normalized);
+  localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(normalized));
+  localStorage.setItem('favorites', JSON.stringify(normalized));
+}
+
+function isFavoriteBusiness(businessId) {
+  return favoriteBusinessIds.has(Number(businessId));
+}
+
+function updateFavoriteInCollections(businessId, isFavorite) {
+  const normalizedId = Number(businessId);
+  const apply = (business) => (business.id === normalizedId ? { ...business, isFavorite } : business);
+  allBusinesses = allBusinesses.map(apply);
+  allNearest = allNearest.map(apply);
+  searchBusinesses = searchBusinesses.map(apply);
+}
+
+async function fetchFavoriteIdsFromBackend() {
+  if (!getToken()) {
+    persistFavoriteIds([]);
+    return;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/favorites`, {
+    headers: { Authorization: `${getTokenType()} ${getToken()}` }
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const favorites = await response.json();
+  const ids = Array.isArray(favorites)
+    ? favorites.map((business) => Number(business.id)).filter((id) => Number.isFinite(id))
+    : [];
+  persistFavoriteIds(ids);
+}
+
+async function syncFavoritesFromBackend() {
+  try {
+    await fetchFavoriteIdsFromBackend();
+  } catch (error) {
+    console.warn('[SelloDoradoMX] No se pudieron sincronizar favoritos desde el backend:', error.message);
+    persistFavoriteIds(getFavoriteIdsFromStorage());
+  }
+}
+
+async function toggleFavorite(businessId, shouldFavorite) {
+  if (!getToken()) {
+    showLoginModal();
+    return false;
+  }
+
+  const method = shouldFavorite ? 'POST' : 'DELETE';
+  const response = await fetch(`${API_BASE_URL}/favorites/${encodeURIComponent(businessId)}`, {
+    method,
+    headers: {
+      Authorization: `${getTokenType()} ${getToken()}`
+    }
+  });
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const nextIds = shouldFavorite
+    ? [...favoriteBusinessIds, Number(businessId)]
+    : [...favoriteBusinessIds].filter((id) => id !== Number(businessId));
+  persistFavoriteIds(nextIds);
+  updateFavoriteInCollections(businessId, shouldFavorite);
+  return true;
+}
 
 function getCategorySlug(categoryName) {
   const value = String(categoryName || '').toUpperCase();
@@ -71,7 +168,7 @@ function mapBusinessFromApi(business, index = 0) {
     ratingsCount,
     category: getCategorySlug(business.categoryName),
     imageUrl: image,
-    isFavorite: false,
+    isFavorite: isFavoriteBusiness(business.id),
     hasGoldenSeal: !!business.verified,
     latitude: business.latitude,
     longitude: business.longitude
@@ -526,6 +623,8 @@ async function loadNearestWithGeo(categoryId = null) {
 // ─── INIT ───────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await _apiReady;
+  persistFavoriteIds(getFavoriteIdsFromStorage());
+  await syncFavoritesFromBackend();
   fetchBusinessCategories();
 
   // 1. Cargar datos (fallback a mocks si el backend está apagado)
@@ -573,15 +672,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btn = e.target.closest('.card-favorite');
     if (!btn) return;
 
+    e.stopPropagation();
+
     const isLoggedIn = !!localStorage.getItem('token');
     if (!isLoggedIn) {
       showLoginModal();
       return;
     }
 
-    btn.classList.toggle('liked');
-    btn.setAttribute('aria-pressed', btn.classList.contains('liked'));
-    // TODO: POST /favorites/{id} cuando se integre JWT
+    const businessId = Number(btn.dataset.id || 0);
+    const nextState = !btn.classList.contains('liked');
+    toggleFavorite(businessId, nextState)
+      .then((updated) => {
+        if (!updated) return;
+        btn.classList.toggle('liked', nextState);
+        btn.setAttribute('aria-pressed', String(nextState));
+        btn.setAttribute('aria-label', nextState ? 'Quitar de favoritos' : 'Agregar a favoritos');
+      })
+      .catch((error) => {
+        console.warn('[SelloDoradoMX] No se pudo actualizar favorito:', error.message);
+      });
   });
 
   // 5. Navegar al detalle al hacer clic en una tarjeta
