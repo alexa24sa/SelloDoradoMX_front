@@ -26,6 +26,7 @@ let routeControl = null; // Control de ruta
 let activeCategory = 'all';
 let allBusinesses = [];
 let allNearest = [];
+let searchBusinesses = []; // Para resultados de búsqueda desde /businesses/all
 let categoryCatalog = [...DEFAULT_CATEGORIES];
 let currentUserLat = DEFAULT_USER_LAT;
 let currentUserLng = DEFAULT_USER_LON;
@@ -356,25 +357,30 @@ function renderBusinessCards(businesses, container) {
 function applyFilters() {
   const term = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
   const match = (b) => {
-    const byCategory = activeCategory === 'all' || b.category === activeCategory;
     const bySearch = !term
       || b.name.toLowerCase().includes(term)
       || b.location.toLowerCase().includes(term)
       || b.category.toLowerCase().includes(term);
-    return byCategory && bySearch;
+    return bySearch;
   };
-  renderBusinessCards(allBusinesses.filter(match), document.getElementById('businesses-grid'));
+  // Si hay búsqueda, usar searchBusinesses (desde /businesses/all), sino usar allBusinesses (desde /businesses)
+  const dataSource = term ? searchBusinesses : allBusinesses;
+  renderBusinessCards(dataSource.filter(match), document.getElementById('businesses-grid'));
   renderBusinessCards(allNearest.filter(match), document.getElementById('nearest-grid'));
 }
 
 /**
- * Función que obtiene todos los negocios sin filtro de verificación
+ * Función que obtiene negocios filtrados por categoría si se especifica
+ * @param {string|null} categorySlug - Slug de categoría (ej: 'gastronomy') o null para todas
  */
-async function fetchBusinesses(categoryName = null) {
+async function fetchBusinesses(categorySlug = null) {
   const container = document.getElementById('businesses-grid');
   try {
-    // Usar el endpoint /all que trae todos los negocios sin filtrar por verificación
-    let url = `${API_BASE_URL}/businesses/all`;
+    // Construir URL: si se especifica categoría, agregar parámetro ?category=slug
+    let url = `${API_BASE_URL}/businesses`;
+    if (categorySlug && categorySlug !== 'all') {
+      url += `?category=${encodeURIComponent(categorySlug)}`;
+    }
 
     const res = await fetch(url, {
       method: 'GET',
@@ -393,6 +399,26 @@ async function fetchBusinesses(categoryName = null) {
     return;
   }
   renderBusinessCards(allBusinesses, container);
+}
+
+/**
+ * Función que obtiene todos los negocios para búsqueda (desde /businesses/all)
+ */
+async function fetchBusinessesForSearch() {
+  try {
+    let url = `${API_BASE_URL}/businesses/all`;
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    searchBusinesses = Array.isArray(data) ? data.map(mapBusinessFromApi) : [];
+  } catch (err) {
+    console.error('[SelloDoradoMX] Error al obtener negocios para búsqueda:', err.message);
+    searchBusinesses = [];
+  }
 }
 
 /**
@@ -455,10 +481,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   fetchBusinesses();
   loadNearestWithGeo();
 
-  // 2. Filtro de categorías (event delegation) - filtra en cliente
+  // 2. Filtro de categorías - fetch desde servidor con categoría como parámetro
   const categoriesScroll = document.querySelector('.categories-scroll');
   if (categoriesScroll) {
-    categoriesScroll.addEventListener('click', (e) => {
+    categoriesScroll.addEventListener('click', async (e) => {
       const btn = e.target.closest('.category-btn');
       if (!btn) return;
       categoriesScroll.querySelectorAll('.category-btn').forEach((b) => {
@@ -469,8 +495,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.setAttribute('aria-selected', 'true');
       activeCategory = btn.dataset.category;
 
-      // Filtrar en cliente tanto la sección "SelloDorado" como "Cerca de ti"
-      applyFilters();
+      // Fetch negocios con filtro de categoría desde servidor
+      await fetchBusinesses(activeCategory);
 
       // Actualizar mapa con todos los negocios cercanos (sin filtro de categoría)
       if ('geolocation' in navigator) {
@@ -486,7 +512,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 3. Búsqueda en tiempo real
   const searchInput = document.getElementById('search-input');
-  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (searchInput) {
+    searchInput.addEventListener('input', async (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      // Si hay texto de búsqueda y aún no hemos cargado searchBusinesses, cargar desde /businesses/all
+      if (term && searchBusinesses.length === 0) {
+        await fetchBusinessesForSearch();
+      }
+      applyFilters();
+    });
+  }
 
   // 4. Toggle favorito — requiere sesión iniciada
   document.body.addEventListener('click', (e) => {
