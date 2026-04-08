@@ -75,9 +75,9 @@
 
 @media (max-width: 480px) {
   #chat-widget-container {
-    top: 12px;
-    bottom: auto;
-    right: 12px;
+    bottom: 24px;
+    left: 12px;
+    right: auto;
   }
 
   .chat-bubble {
@@ -457,6 +457,39 @@
 .send-icon {
   line-height: 1;
   display: flex;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .chat-window {
+    width: calc(100vw - 24px);
+    left: 12px;
+    right: auto;
+    height: calc(100vh - 150px);
+    bottom: 95px;
+    max-height: none;
+  }
+
+  .message-content {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+
+  .chat-header {
+    padding: 14px 16px;
+  }
+
+  .chat-title {
+    font-size: 16px;
+  }
+
+  .chat-messages-area {
+    padding: 14px;
+  }
+
+  .chat-input-area {
+    padding: 12px 14px;
+  }
 }
 
 /* Responsive - Tablets */
