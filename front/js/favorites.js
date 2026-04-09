@@ -1,16 +1,10 @@
-let API_BASE_URL = 'http://localhost:8088/api/v1';
+let API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || 'http://localhost:8088/api/v1';
 const FAVORITES_STORAGE_KEY = 'favoriteBusinessIds';
-const _apiReady = (async () => {
-  for (const port of [8088, 8080]) {
-    try {
-      const response = await fetch(`http://localhost:${port}/api/v1/business-categories`, { signal: AbortSignal.timeout(2000) });
-      if (response.status < 600) {
-        API_BASE_URL = `http://localhost:${port}/api/v1`;
-        return;
-      }
-    } catch {}
-  }
-})();
+const _apiReady = Promise.resolve(window.AppRuntimeConfig?.ready)
+  .catch(() => null)
+  .then(() => {
+    API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || API_BASE_URL;
+  });
 
 function getToken() {
   const token = localStorage.getItem('token');

@@ -10,7 +10,7 @@ class ChatWidget {
     this.messages = [];
     this.containerElement = null;
     this.consecutiveMisunderstood = 0;
-    this.apiBaseUrl = window.API_BASE_URL || 'http://localhost:8088/api/v1';
+    this.apiBaseUrl = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || 'http://localhost:8088/api/v1';
     
     this.init();
   }
@@ -180,6 +180,9 @@ class ChatWidget {
     this.showTypingIndicator();
 
     try {
+      await Promise.resolve(window.AppRuntimeConfig?.ready).catch(() => null);
+      this.apiBaseUrl = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || this.apiBaseUrl;
+
       // Enviar mensaje al backend
       const response = await fetch(`${this.apiBaseUrl}/chat/send`, {
         method: 'POST',

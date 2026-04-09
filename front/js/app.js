@@ -1,12 +1,9 @@
-let API_BASE_URL = 'http://localhost:8088/api/v1';
-const _apiReady = (async () => {
-  for (const port of [8088, 8080]) {
-    try {
-      const r = await fetch(`http://localhost:${port}/api/v1/business-categories`, { signal: AbortSignal.timeout(2000) });
-      if (r.status < 600) { API_BASE_URL = `http://localhost:${port}/api/v1`; return; }
-    } catch {}
-  }
-})();
+let API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || 'http://localhost:8088/api/v1';
+const _apiReady = Promise.resolve(window.AppRuntimeConfig?.ready)
+  .catch(() => null)
+  .then(() => {
+    API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || API_BASE_URL;
+  });
 const DEFAULT_USER_LAT = 19.4326;
 const DEFAULT_USER_LON = -99.1332;
 const DEFAULT_CATEGORIES = [
@@ -567,8 +564,7 @@ async function fetchBusinesses(categorySlug = null) {
     }
 
     const res = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      method: 'GET'
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -593,8 +589,7 @@ async function fetchBusinessesForSearch() {
     let url = `${API_BASE_URL}/businesses/all`;
 
     const res = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      method: 'GET'
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -624,8 +619,7 @@ async function fetchNearestBusinesses(lat, lng, categoryId = null) {
 
   try {
     const res = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      method: 'GET'
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();

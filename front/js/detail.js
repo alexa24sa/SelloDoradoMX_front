@@ -1,4 +1,10 @@
-let API_BASE_URL = 'http://localhost:8088/api/v1';
+let API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || 'http://localhost:8088/api/v1';
+
+const _apiReady = Promise.resolve(window.AppRuntimeConfig?.ready)
+  .catch(() => null)
+  .then(() => {
+    API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || API_BASE_URL;
+  });
 
 /* ── Carrusel genérico ────────────────────────────────────────────── */
 function buildCarousel(trackId, dotsId, photos, fallback) {
@@ -75,19 +81,6 @@ async function userHasRegisteredBusiness() {
   }
   return _userHasBusinessCache;
 }
-
-const _apiReady = (async () => {
-  for (const port of [8088, 8080]) {
-    try {
-      const r = await fetch(`http://localhost:${port}/api/v1/business-categories`, { signal: AbortSignal.timeout(2000) });
-      if (r.status < 600) {
-        API_BASE_URL = `http://localhost:${port}/api/v1`;
-        return;
-      }
-    } catch {}
-  }
-})();
-
 const ui = window.AppUi;
 const businessId = Number(localStorage.getItem('businessId') || 0);
 const FAVORITES_STORAGE_KEY = 'favoriteBusinessIds';
