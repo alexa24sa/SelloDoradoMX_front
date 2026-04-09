@@ -139,10 +139,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="js/ui-feedback.js"></script>
+  <script src="js/runtime-config.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
-    let API_BASE_URL = 'http://localhost:8088/api/v1';
-    const GOOGLE_CLIENT_ID = "146630611488-rtk4gcr4g7nqei3690tvk9218jhhpgi0.apps.googleusercontent.com";
+    let API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || 'http://localhost:8088/api/v1';
+    let googleClientId = '';
+    let isGoogleInitialized = false;
     const ui = window.AppUi;
 
     const loginTab   = document.getElementById('loginTab');
@@ -172,22 +174,37 @@
       return user?.roleName === 'ROLE_ADMIN' ? 'admin.html' : 'home.html';
     }
 
-    window.onload = () => {
-        // A. Inicializar el cliente de Google
+    async function loadAppConfig() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/app-config`);
+        if (!res.ok) throw new Error(await parseApiError(res));
+        const data = await res.json();
+        googleClientId = String(data?.googleClientId || '').trim();
+      } catch {
+        googleClientId = '';
+      }
+    }
+
+    function initGoogleIdentity() {
+      if (isGoogleInitialized || !window.google || !googleClientId) {
+        return;
+      }
+
       google.accounts.id.initialize({
-        client_id:GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse, // Función que se ejecuta tras el login
-        auto_select: false, // Si es true, loguea automáticamente si ya hay sesión
+        client_id: googleClientId,
+        callback: handleCredentialResponse,
+        auto_select: false,
       });
 
-      // B. Renderizar el botón oficial
-      google.accounts.id.renderButton(document.getElementById("googleBtn"), {
-        theme: "outline",
-        size: "large",
-        shape: "pill",
-        text: "signin_with",
+      google.accounts.id.renderButton(document.getElementById('googleBtn'), {
+        theme: 'outline',
+        size: 'large',
+        shape: 'pill',
+        text: 'signin_with',
       });
-    };
+
+      isGoogleInitialized = true;
+    }
 
     //Esta función recibe la respuesta de Google tras un login exitoso
     async function handleCredentialResponse(response) {
@@ -205,9 +222,8 @@
 
         if (!res.ok) throw new Error(await parseApiError(res));
         const data = await res.json();
-        console.log(data)
         saveAuth(data);
-        await ui.success({ title: 'Sesión iniciada con Google', text: 'Tu cuenta quedó lista para continuar.' });
+        await ui.success({ title: 'Inicio de sesión exitoso', text: 'La autenticación con Google se completó correctamente.' });
         window.location.href = resolvePostAuthRoute(data?.user);
       }catch (error){
         await ui.error({ title: 'No se pudo autenticar con Google', text: error.message });
@@ -262,7 +278,7 @@
         if (!res.ok) throw new Error(await parseApiError(res));
         const data = await res.json();
         saveAuth(data);
-        await ui.success({ title: 'Sesión iniciada', text: 'Tu acceso fue correcto. Vamos a llevarte a tu panel.' });
+        await ui.success({ title: 'Inicio de sesión exitoso', text: 'La autenticación se completó correctamente. Será redirigido en unos momentos.' });
         window.location.href = resolvePostAuthRoute(data?.user);
       } catch (error) {
         await ui.error({ title: 'No se pudo iniciar sesión', text: error.message });
@@ -294,7 +310,7 @@
 
         if (!res.ok) throw new Error(await parseApiError(res));
 
-        await ui.success({ title: 'Registro exitoso', text: 'Ahora inicia sesión con tu cuenta.' });
+        await ui.success({ title: 'Registro completado', text: 'La cuenta se creó correctamente. Ya puede iniciar sesión con sus credenciales.' });
         showLogin();
         document.getElementById('loginEmail').value = email;
         document.getElementById('loginPassword').value = password;
@@ -340,6 +356,8 @@
         return;
       }
 
+      await (window.AppRuntimeConfig?.ready || Promise.resolve(API_BASE_URL));
+      API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || API_BASE_URL;
       await loadAppConfig();
       initGoogleIdentity();
     });

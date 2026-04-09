@@ -1,12 +1,9 @@
-let API_BASE_URL = 'http://localhost:8088/api/v1';
-const _apiReady = (async () => {
-  for (const port of [8088, 8080]) {
-    try {
-      const r = await fetch(`http://localhost:${port}/api/v1/business-categories`, { signal: AbortSignal.timeout(2000) });
-      if (r.status < 600) { API_BASE_URL = `http://localhost:${port}/api/v1`; return; }
-    } catch {}
-  }
-})();
+let API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || 'http://localhost:8088/api/v1';
+const _apiReady = Promise.resolve(window.AppRuntimeConfig?.ready)
+  .catch(() => null)
+  .then(() => {
+    API_BASE_URL = window.AppRuntimeConfig?.getApiBaseUrl?.() || window.API_BASE_URL || API_BASE_URL;
+  });
 const DOCUMENT_TYPES = {
   IDENTIFICATION: 'IDENTIFICATION',
   ADDRESS_PROOF: 'ADDRESS_PROOF'
@@ -516,4 +513,4 @@ async function initAdminPage() {
   }
 }
 
-initAdminPage();
+_apiReady.then(() => initAdminPage());
