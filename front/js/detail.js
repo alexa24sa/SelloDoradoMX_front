@@ -52,9 +52,28 @@ function buildCarousel(trackId, dotsId, photos, fallback) {
   }
 }
 
-/* ── Usuario actual (para detectar si es comerciante) ──────────── */
+/* ── Usuario actual ───────────────────────────────────────────── */
 function getCurrentUser() {
   try { return JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch { return null; }
+}
+
+/* ── ¿El usuario autenticado tiene al menos un negocio registrado? ─ */
+let _userHasBusinessCache = null;
+async function userHasRegisteredBusiness() {
+  if (_userHasBusinessCache !== null) return _userHasBusinessCache;
+  const user = getCurrentUser();
+  if (!user?.id || !getToken()) { _userHasBusinessCache = false; return false; }
+  try {
+    const res = await fetch(`${API_BASE_URL}/businesses/user/${user.id}`, {
+      headers: getJsonAuthHeaders()
+    });
+    if (!res.ok) { _userHasBusinessCache = false; return false; }
+    const data = await res.json();
+    _userHasBusinessCache = Array.isArray(data) && data.length > 0;
+  } catch {
+    _userHasBusinessCache = false;
+  }
+  return _userHasBusinessCache;
 }
 
 const _apiReady = (async () => {
@@ -374,14 +393,13 @@ function fillDetail(business) {
     business.verified ? premEl.removeAttribute('hidden') : premEl.setAttribute('hidden', '');
   }
 
-  // CTA Coppel Emprende (solo para comerciantes sin sello)
+  // CTA Coppel Emprende (solo si el usuario tiene un negocio registrado y el negocio visto no tiene sello)
   if (ctaEl) {
-    const user = getCurrentUser();
-    const isMerchant = user?.roleName === 'ROLE_MERCHANT' || user?.roleName === 'MERCHANT';
-    if (isMerchant && !business.verified) {
-      ctaEl.removeAttribute('hidden');
-    } else {
-      ctaEl.setAttribute('hidden', '');
+    ctaEl.setAttribute('hidden', '');
+    if (!business.verified) {
+      userHasRegisteredBusiness().then(hasBusiness => {
+        if (hasBusiness) ctaEl.removeAttribute('hidden');
+      });
     }
   }
 
