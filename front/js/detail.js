@@ -385,21 +385,29 @@ function fillDetail(business) {
 
   // Badge Sello Dorado
   if (badge) {
-    business.verified ? badge.removeAttribute('hidden') : badge.setAttribute('hidden', '');
+    business.goldenSealActive ? badge.removeAttribute('hidden') : badge.setAttribute('hidden', '');
   }
 
-  // Sección premium (negocios verificados / con sello)
+  // Sección premium (solo si el negocio tiene el Sello Dorado activo)
   if (premEl) {
-    business.verified ? premEl.removeAttribute('hidden') : premEl.setAttribute('hidden', '');
+    business.goldenSealActive ? premEl.removeAttribute('hidden') : premEl.setAttribute('hidden', '');
   }
 
-  // CTA Coppel Emprende (solo si el usuario tiene un negocio registrado y el negocio visto no tiene sello)
+  // CTA Coppel Emprende (solo si el usuario es dueño de este negocio y aún no está inscrito)
   if (ctaEl) {
     ctaEl.setAttribute('hidden', '');
-    if (!business.verified) {
-      userHasRegisteredBusiness().then(hasBusiness => {
-        if (hasBusiness) ctaEl.removeAttribute('hidden');
-      });
+    if (!business.coppelEmprendeEnrolled) {
+      const user = getCurrentUser();
+      if (user?.id && getToken()) {
+        fetch(`${API_BASE_URL}/businesses/user/${user.id}`, { headers: getJsonAuthHeaders() })
+          .then(r => r.ok ? r.json() : [])
+          .then(list => {
+            if (Array.isArray(list) && list.some(b => Number(b.id) === Number(businessId))) {
+              ctaEl.removeAttribute('hidden');
+            }
+          })
+          .catch(() => {});
+      }
     }
   }
 
