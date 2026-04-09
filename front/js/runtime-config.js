@@ -8,8 +8,28 @@
     const rawValue = String(value || '').trim().replace(/\/+$/, '');
     if (!rawValue) return '';
 
-    const withProtocol = /^https?:\/\//i.test(rawValue) ? rawValue : `https://${rawValue}`;
+    const withProtocol = rawValue.startsWith('//')
+      ? `${window.location.protocol}${rawValue}`
+      : /^https?:\/\//i.test(rawValue)
+        ? rawValue
+        : `https://${rawValue}`;
     return /\/api\/v1$/i.test(withProtocol) ? withProtocol : `${withProtocol}/api/v1`;
+  }
+
+  async function loadJsonConfig() {
+    const candidatePaths = ['./config.json'];
+
+    for (const candidatePath of candidatePaths) {
+      try {
+        const response = await fetch(candidatePath, { cache: 'no-store' });
+        if (!response.ok) continue;
+        return await response.json();
+      } catch {
+        // Ignore and continue to env fallback.
+      }
+    }
+
+    return {};
   }
 
   function parseEnvFile(content) {
@@ -46,7 +66,8 @@
   }
 
   async function resolveApiBaseUrl() {
-    const envConfig = await loadPublicEnv();
+    const jsonConfig = await loadJsonConfig();
+    const envConfig = Object.keys(jsonConfig).length ? jsonConfig : await loadPublicEnv();
     const configuredBaseUrl = normalizeApiBaseUrl(envConfig.PUBLIC_API_BASE_URL || envConfig.API_BASE_URL || '');
     if (configuredBaseUrl) {
       return configuredBaseUrl;

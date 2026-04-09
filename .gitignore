@@ -5,3 +5,4 @@ back/
 # Archivos del sistema
 .DS_Store
 .vscode/
+.env
